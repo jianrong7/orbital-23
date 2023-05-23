@@ -19,9 +19,9 @@ import (
 	"context"
 	"log"
 
-	"gabrielexample/gabriel_example/kitex_gen/api/example"
+	// ex "simpleExample/kitex_gen/api/simpleexample"
 
-	"github.com/cloudwego/kitex/client"
+	// "github.com/cloudwego/kitex/client"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -38,10 +38,10 @@ type Args struct {
 }
 
 func main() {
-	client, err := example.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// client, err := ex.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// for {
 	// 	req := &api.Request{Message: "my request"}
 	// 	resp, err := client.Echo(context.Background(), req)

@@ -3,12 +3,12 @@ module simpleExample
 go 1.20
 
 require (
+	github.com/apache/thrift v0.18.1
 	github.com/cloudwego/hertz v0.3.0
 	github.com/cloudwego/kitex v0.5.2
 )
 
 require (
-	github.com/apache/thrift v0.18.1 // indirect
 	github.com/bytedance/go-tagexpr/v2 v2.9.2 // indirect
 	github.com/bytedance/gopkg v0.0.0-20230512060433-7f5f1dee0b1e // indirect
 	github.com/bytedance/sonic v1.3.0 // indirect
