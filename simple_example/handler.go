@@ -5,17 +5,16 @@ import (
 	api "simpleExample/kitex_gen/api"
 )
 
-// SimpleExampleImpl implements the last service interface defined in the IDL.
-type SimpleExampleImpl struct{}
+// ExampleImpl implements the last service interface defined in the IDL.
+type ExampleImpl struct{}
 
-// Echo implements the SimpleExampleImpl interface.
-func (s *SimpleExampleImpl) Echo(ctx context.Context, req *api.Request) (resp *api.Response, err error) {
-	// TODO: Your code here...
-	return
+// Echo implements the ExampleImpl interface.
+func (s *ExampleImpl) Echo(ctx context.Context, req *api.Request) (resp *api.Response, err error) {
+	return &api.Response{Message: req.Message}, nil
 }
 
-// Add implements the SimpleExampleImpl interface.
-func (s *SimpleExampleImpl) Add(ctx context.Context, req *api.AddRequest) (resp *api.AddResponse, err error) {
-	// TODO: Your code here...
+// Add implements the ExampleImpl interface.
+func (s *ExampleImpl) Add(ctx context.Context, req *api.AddRequest) (resp *api.AddResponse, err error) {
+	resp = &api.AddResponse{Sum: req.First + req.Second}
 	return
 }

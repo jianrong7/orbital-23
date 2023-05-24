@@ -17,57 +17,54 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
+	"simpleExample/kitex_gen/api"
 
-	// ex "simpleExample/kitex_gen/api/simpleexample"
+	ex "simpleExample/kitex_gen/api/simpleexample"
 
-	// "github.com/cloudwego/kitex/client"
+	"github.com/cloudwego/kitex/client"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/app/server/binding"
 )
 
-type Args struct {
-	Query      string   `query:"query"`
-	QuerySlice []string `query:"q"`
-	Path       string   `path:"path"`
-	Header     string   `header:"header"`
-	Form       string   `form:"form"`
-	Json       string   `json:"json"`
-	Vd         int      `query:"vd" vd:"$==0||$==1"`
+type TestBind struct {
+	A string `raw_body:""`
 }
 
 func main() {
-	// client, err := ex.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// for {
-	// 	req := &api.Request{Message: "my request"}
-	// 	resp, err := client.Echo(context.Background(), req)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	log.Println(resp)
-	// 	time.Sleep(time.Second)
-	// 	addReq := &api.AddRequest{First: 20, Second: 20}
-	// 	addResp, err := client.Add(context.Background(), addReq)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	log.Println(addResp)
-	// 	time.Sleep(time.Second)
-	// }
+	client, err := ex.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	binding.UseStdJSONUnmarshaler()
 
 	h := server.Default()
 
 	h.POST("/handle", func(c context.Context, ctx *app.RequestContext) {
-		var arg Args
+		var arg TestBind
 		err := ctx.BindAndValidate(&arg)
 		if err != nil {
 			panic(err)
 		}
-		log.Println(arg)
+
+		var nums api.AddRequest
+		err = json.Unmarshal([]byte(arg.A), &nums)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		addReq := &nums
+		addResp, err := client.Add(context.Background(), addReq)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(addResp)
+
+		ctx.String(200, addResp.String())
 	})
 
 	h.Spin()
