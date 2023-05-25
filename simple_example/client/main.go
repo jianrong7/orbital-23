@@ -17,54 +17,68 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"simpleExample/kitex_gen/api"
-
-	ex "simpleExample/kitex_gen/api/simpleexample"
 
 	"github.com/cloudwego/kitex/client"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
-	"github.com/cloudwego/hertz/pkg/app/server/binding"
+
+	"github.com/cloudwego/kitex/client/genericclient"
+	"github.com/cloudwego/kitex/pkg/generic"
 )
 
-type TestBind struct {
-	A string `raw_body:""`
+type JSONRawBody struct {
+	RawBody string `raw_body:""`
 }
 
 func main() {
-	client, err := ex.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	binding.UseStdJSONUnmarshaler()
+	// client, err := ex.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	h := server.Default()
 
 	h.POST("/handle", func(c context.Context, ctx *app.RequestContext) {
-		var arg TestBind
+		var arg JSONRawBody
 		err := ctx.BindAndValidate(&arg)
 		if err != nil {
 			panic(err)
 		}
 
-		var nums api.AddRequest
-		err = json.Unmarshal([]byte(arg.A), &nums)
+		p, err := generic.NewThriftFileProvider("../ex.thrift")
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
-		addReq := &nums
-		addResp, err := client.Add(context.Background(), addReq)
+		g, err := generic.JSONThriftGeneric(p)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		log.Println(addResp)
 
-		ctx.String(200, addResp.String())
+		cli, err := genericclient.NewClient("example", g, client.WithHostPorts("127.0.0.2:8888"))
+		if err != nil {
+			panic(err)
+		}
+
+		log.Println(arg.RawBody)
+
+		resp, err := cli.GenericCall(c, "Add", arg.RawBody)
+
+		// var nums api.AddRequest
+
+		// addReq := &nums
+		// addResp, err := client.Add(context.Background(), addReq)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// log.Println(addResp)
+
+		// ctx.String(200, addResp.String())
+
+		log.Println(resp)
+		ctx.JSON(200, resp)
 	})
 
 	h.Spin()
