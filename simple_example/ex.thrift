@@ -18,6 +18,6 @@ struct AddResponse {
 }
 
 service SimpleExample {
-    Response echo(1: Request req)
-    AddResponse add(1: AddRequest req)
+    Response Echo(1: Request req)
+    AddResponse Add(1: AddRequest req)
 }
