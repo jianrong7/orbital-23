@@ -64,7 +64,7 @@ func main() {
 
 		log.Println(arg.RawBody)
 
-		resp, err := cli.GenericCall(c, "Add", arg.RawBody)
+		resp, err := cli.GenericCall(c, "add", arg.RawBody)
 
 		// var nums api.AddRequest
 
