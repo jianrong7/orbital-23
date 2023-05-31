@@ -19,11 +19,18 @@ func (g *ExampleImpl) GenericCall(ctx context.Context, method string, request in
 	if err != nil {
 		panic(err)
 	}
-
-	result := &api.AddResponse{Sum: req.First + req.Second}
-	respBuf, err := rc.Encode(method, thrift.REPLY, seqId, result)
-
-	return respBuf, nil
+	
+	switch method {
+	case "Add":
+		result := &api.AddResponse{Sum: req.First + req.Second}
+		respBuf, err := rc.Encode(method, thrift.REPLY, seqId, result)
+		if err != nil {
+			panic(err)
+		}
+	
+		return respBuf, nil
+	}
+	return
 }
 
 // // Echo implements the ExampleImpl interface.
