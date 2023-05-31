@@ -24,6 +24,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
@@ -65,7 +66,7 @@ func main() {
 		}
 
 		log.Println(res)
-		ctx.JSON(200, res)
+		ctx.JSON(consts.StatusOK, res)
 	})
 
 	h.Spin()

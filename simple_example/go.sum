@@ -49,8 +49,8 @@ github.com/cloudwego/fastpb v0.0.4 h1:/ROVVfoFtpfc+1pkQLzGs+azjxUbSOsAqSY4tAAx4m
 github.com/cloudwego/fastpb v0.0.4/go.mod h1:/V13XFTq2TUkxj2qWReV8MwfPC4NnPcy6FsrojnsSG0=
 github.com/cloudwego/frugal v0.1.6 h1:aXJ7W0Omion1WTCe4JHAWinQmjXDYzHt03sabu3Rabo=
 github.com/cloudwego/frugal v0.1.6/go.mod h1:9ElktKsh5qd2zDBQ5ENhPSQV7F2dZ/mXlr1eaZGDBFs=
-github.com/cloudwego/hertz v0.6.3 h1:zbus6GEYcTBH8UbgA+ay52u9oV9Kg6EvHp92GF9eTwo=
-github.com/cloudwego/hertz v0.6.3/go.mod h1:KhztQcZtMQ46gOjZcmCy557AKD29cbumGEV0BzwevwA=
+github.com/cloudwego/hertz v0.6.4 h1:H6FGXZrtjjG/MwgxYi4k8baKZEwDuz0qHgSihoymJ2o=
+github.com/cloudwego/hertz v0.6.4/go.mod h1:KhztQcZtMQ46gOjZcmCy557AKD29cbumGEV0BzwevwA=
 github.com/cloudwego/kitex v0.5.2 h1:hsnuXbmbqTFFLAhV2WgbUdN9GMDhQE2sWUX1+ag3or8=
 github.com/cloudwego/kitex v0.5.2/go.mod h1:JpJVDdecl6bU5hlmtxooZgcnAvLXpYTU/A7UDdrTcPk=
 github.com/cloudwego/netpoll v0.3.2 h1:/998ICrNMVBo4mlul4j7qcIeY7QnEfuCCPPwck9S3X4=
