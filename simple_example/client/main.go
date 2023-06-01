@@ -18,14 +18,17 @@ package main
 import (
 	"context"
 	"log"
+	"simpleExample/kitex_gen/api"
 
-	"github.com/cloudwego/kitex/client"
-
+	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
+	"github.com/cloudwego/kitex/pkg/utils"
 )
 
 type JSONRawBody struct {
@@ -33,52 +36,37 @@ type JSONRawBody struct {
 }
 
 func main() {
-	// client, err := ex.NewClient("example", client.WithHostPorts("127.0.0.2:8888"))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	h := server.Default()
 
+	genericCli, err := genericclient.NewClient("example", generic.BinaryThriftGeneric(), client.WithHostPorts("127.0.0.1:8080"))
+	if err != nil {
+		panic(err)
+	}
+
+	rc := utils.NewThriftMessageCodec()
+
 	h.POST("/handle", func(c context.Context, ctx *app.RequestContext) {
-		var arg JSONRawBody
-		err := ctx.BindAndValidate(&arg)
+		var req api.AddRequest
+		var res api.AddResponse
+		err := ctx.BindAndValidate(&req)
 		if err != nil {
 			panic(err)
 		}
 
-		p, err := generic.NewThriftFileProvider("../ex.thrift")
+		reqBuf, err := rc.Encode("Add", thrift.CALL, 1, &api.AddRequest{First: req.First, Second: req.Second})
 		if err != nil {
 			panic(err)
 		}
 
-		g, err := generic.JSONThriftGeneric(p)
+		resBuf, err := genericCli.GenericCall(context.Background(), "Add", reqBuf)
+
+		_, _, err = rc.Decode(resBuf.([]byte), &res)
 		if err != nil {
 			panic(err)
 		}
 
-		cli, err := genericclient.NewClient("example", g, client.WithHostPorts("127.0.0.2:8888"))
-		if err != nil {
-			panic(err)
-		}
-
-		log.Println(arg.RawBody)
-
-		resp, err := cli.GenericCall(c, "Add", arg.RawBody)
-
-		// var nums api.AddRequest
-
-		// addReq := &nums
-		// addResp, err := client.Add(context.Background(), addReq)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// log.Println(addResp)
-
-		// ctx.String(200, addResp.String())
-
-		log.Println(resp)
-		ctx.JSON(200, resp)
+		log.Println(res)
+		ctx.JSON(consts.StatusOK, res)
 	})
 
 	h.Spin()

@@ -2,28 +2,33 @@ package main
 
 import (
 	"context"
-	"log"
-	api "simpleExample/kitex_gen/api"
+	"simpleExample/kitex_gen/api"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/apache/thrift/lib/go/thrift"
+	"github.com/cloudwego/kitex/pkg/utils"
 )
 
 // ExampleImpl implements the last service interface defined in the IDL.
 type ExampleImpl struct{}
 
-func (g *ExampleImpl) GenericCall(c context.Context, method string, request interface{}) (response interface{}, err error) {
-	// use JSON parsing library to assert request
-	m := request.(string) // string type assertion
-	log.Println(m)
+func (g *ExampleImpl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
+	rc := utils.NewThriftMessageCodec()
+	var req api.AddRequest
+	reqBuf := request.([]byte)
+	_, seqId, err := rc.Decode(reqBuf, &req)
+	if err != nil {
+		panic(err)
+	}
+	
 	switch method {
 	case "Add":
-		var nums api.AddRequest
-		err = jsoniter.Unmarshal([]byte(m), &nums)
+		result := &api.AddResponse{Sum: req.First + req.Second}
+		respBuf, err := rc.Encode(method, thrift.REPLY, seqId, result)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		response = api.AddResponse{Sum: nums.First + nums.Second}
-		return jsoniter.MarshalToString(response)
+	
+		return respBuf, nil
 	}
 	return
 }
