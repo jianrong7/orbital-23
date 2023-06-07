@@ -38,12 +38,12 @@ func main() {
 		// 	panic(err)
 		// }
 
-		reqBuf, err := rc.Encode("Add", thrift.CALL, 1, req)
+		reqBuf, err := rc.Encode(methodName, thrift.CALL, 1, req)
 		if err != nil {
 			panic(err)
 		}
 
-		resBuf, err := service1Cli.GenericCall(context.Background(), "Add", reqBuf)
+		resBuf, err := service1Cli.GenericCall(context.Background(), methodName, reqBuf)
 
 		_, _, err = rc.Decode(resBuf.([]byte), res)
 		if err != nil {
