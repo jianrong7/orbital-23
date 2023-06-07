@@ -14,7 +14,6 @@ func Service2v1(methodName string, ctx *app.RequestContext) (requestStruct thrif
 		var req s2v1.MulRequest
 		err = jsoniter.Unmarshal(ctx.GetRawData(), &req)
 		// perform checks on unmarshalled data
-
 		var res s2v1.MulResponse
 		return &req, &res, err
 	}

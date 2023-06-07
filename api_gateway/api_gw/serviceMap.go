@@ -13,6 +13,7 @@ var serviceMap = map[string]func(string, *app.RequestContext) (thrift.TStruct, t
 }
 
 func FillRequestGetResponse(serviceName string, methodName string, ctx *app.RequestContext) (requestStruct thrift.TStruct, responseStruct thrift.TStruct, err error) {
+	// unmarshals the json into the request struct and returns the filled request struct and an empty response struct
 	return serviceMap[serviceName](methodName, ctx)
 }
 
