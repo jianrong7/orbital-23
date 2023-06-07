@@ -3,7 +3,8 @@
 package main
 
 import (
-	handler "api_gw/biz/handler"
+	handler "api_gw/api_gw/biz/handler"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 

@@ -3,7 +3,7 @@
 package main
 
 import (
-	router "api_gw/biz/router"
+	router "api_gw/api_gw/biz/router"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
