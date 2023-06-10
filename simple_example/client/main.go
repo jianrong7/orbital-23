@@ -56,7 +56,7 @@ func main() {
 		log.Println(req.First)
 		log.Println(req.Second)
 
-		reqBuf, err := rc.Encode("Add", thrift.CALL, 1, &api.AddRequest{First: req.First, Second: req.Second})
+		reqBuf, err := rc.Encode("Add", thrift.CALL, 1, &req)
 		if err != nil {
 			panic(err)
 		}
