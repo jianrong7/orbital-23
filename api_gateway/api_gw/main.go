@@ -12,10 +12,17 @@ import (
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
 	"github.com/cloudwego/kitex/pkg/utils"
+	consulapi "github.com/hashicorp/consul/api"
 )
 
 func main() {
-	h := initHTTPServer()
+	config := consulapi.DefaultConfig()
+	config.Address = "127.0.0.1:8500"
+	consulClient, err := consulapi.NewClient(config)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	service1Cli, err := genericclient.NewClient("service1v1", generic.BinaryThriftGeneric(), client.WithHostPorts("127.0.0.1:8080"))
 	if err != nil {
