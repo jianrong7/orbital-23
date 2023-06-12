@@ -1,7 +1,0 @@
-{
-    "WithHostPorts": "127.0.0.1:8888",
-    "WithMaxRequestBodySize": 4194304,
-    "WithHandleMethodNotAllowed": true,
-    "WithDisablePreParseMultipartForm": true,
-    "WithBasePath" : "/"
-}
