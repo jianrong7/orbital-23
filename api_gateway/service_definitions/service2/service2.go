@@ -1,19 +1,33 @@
 package main
 
 import (
+	"log"
 	"net"
 
 	"github.com/cloudwego/kitex/pkg/generic"
+	"github.com/cloudwego/kitex/pkg/registry"
 	"github.com/cloudwego/kitex/server"
 	"github.com/cloudwego/kitex/server/genericserver"
+	consul "github.com/kitex-contrib/registry-consul"
 )
 
 func main() {
-	g2 := generic.BinaryThriftGeneric()
-	addr2, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:8081")
-	svr2 := genericserver.NewServer(&Service2Impl{}, g2, server.WithServiceAddr(addr2))
-	err2 := svr2.Run()
-	if err2 != nil {
-		panic(err2)
+	r, err := consul.NewConsulRegister("127.0.0.1:8500")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	g := generic.BinaryThriftGeneric()
+	addr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:8081")
+	svr := genericserver.NewServer(
+		&Service2Impl{},
+		g,
+		server.WithRegistry(r),
+		server.WithRegistryInfo(&registry.Info{ServiceName: "service2", Weight: 1}),
+		server.WithServiceAddr(addr))
+
+	err = svr.Run()
+	if err != nil {
+		panic(err)
 	}
 }

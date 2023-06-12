@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"strings"
+	"time"
 
 	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/cloudwego/hertz/pkg/app"
@@ -12,17 +12,25 @@ import (
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
 	"github.com/cloudwego/kitex/pkg/utils"
+	consul "github.com/kitex-contrib/registry-consul"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func main() {
 	h := initHTTPServer()
 
-	service1Cli, err := genericclient.NewClient("service1v1", generic.BinaryThriftGeneric(), client.WithHostPorts("127.0.0.1:8080"))
+	r, err := consul.NewConsulResolver("127.0.0.1:8500")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	service1Cli, err := genericclient.NewClient("service1", generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 	if err != nil {
 		panic(err)
 	}
-
-	service2Cli, err := genericclient.NewClient("service2v1", generic.BinaryThriftGeneric(), client.WithHostPorts("127.0.0.1:8081"))
+	
+	service2Cli, err := genericclient.NewClient("service2", generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 	if err != nil {
 		panic(err)
 	}
@@ -31,7 +39,7 @@ func main() {
 
 	h.POST("/:service/:method", func(c context.Context, ctx *app.RequestContext) {
 		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
-		methodName := strings.Title(ctx.Param("method"))
+		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
 
 		req, res, err := FillRequestGetResponse(serviceName, methodName, ctx)
 		
