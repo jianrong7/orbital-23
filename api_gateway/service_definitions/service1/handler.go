@@ -14,7 +14,7 @@ type Service1Impl struct{}
 
 // GenericCall implements generic.Service.
 func (g *Service1Impl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
-	log.Println("GenericCall:", request)
+	log.Println("GenericCall from handler1:", request)
 	rc := utils.NewThriftMessageCodec()
 	reqBuf := request.([]byte)
 	switch method {
