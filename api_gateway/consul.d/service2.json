@@ -1,1 +1,0 @@
-{ "service": { "name": "service2", "tags": ["service2"], "port": 8081 } }

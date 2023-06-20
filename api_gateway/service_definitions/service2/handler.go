@@ -15,7 +15,7 @@ type Service2Impl struct{}
 
 // Mul implements the Service2Impl interface.
 func (g *Service2Impl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
-	log.Println("GenericCall:", request)
+	log.Println("GenericCall from handler2:", request)
 	rc := utils.NewThriftMessageCodec()
 	reqBuf := request.([]byte)
 	switch method {
