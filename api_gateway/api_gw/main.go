@@ -25,19 +25,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-<<<<<<< HEAD
-	service1Cli, err := genericclient.NewClient("service1", generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
-	if err != nil {
-		panic(err)
-	}
-
-	service2Cli, err := genericclient.NewClient("service2", generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
-	if err != nil {
-		panic(err)
-	}
-
-=======
->>>>>>> be922b227c92e244c614ba45828c12aa41ac32f2
 	rc := utils.NewThriftMessageCodec()
 
 	h.POST("/:service/:method", func(c context.Context, ctx *app.RequestContext) {
