@@ -25,6 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+<<<<<<< HEAD
 	service1Cli, err := genericclient.NewClient("service1", generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 	if err != nil {
 		panic(err)
@@ -35,6 +36,8 @@ func main() {
 		panic(err)
 	}
 
+=======
+>>>>>>> be922b227c92e244c614ba45828c12aa41ac32f2
 	rc := utils.NewThriftMessageCodec()
 
 	h.POST("/:service/:method", func(c context.Context, ctx *app.RequestContext) {
@@ -53,24 +56,18 @@ func main() {
 			panic(err)
 		}
 
-		if serviceName == "service1v1" {
-			resBuf, err := service1Cli.GenericCall(context.Background(), methodName, reqBuf)
-			if err != nil {
-				panic(err)
-			}
-			_, _, err = rc.Decode(resBuf.([]byte), res)
-			if err != nil {
-				panic(err)
-			}
-		} else if serviceName == "service2v1" {
-			resBuf, err := service2Cli.GenericCall(context.Background(), methodName, reqBuf)
-			if err != nil {
-				panic(err)
-			}
-			_, _, err = rc.Decode(resBuf.([]byte), res)
-			if err != nil {
-				panic(err)
-			}
+		rpcClient, err := genericclient.NewClient(serviceName, generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
+		if err != nil {
+			panic(err)
+		}
+
+		resBuf, err := rpcClient.GenericCall(context.Background(), methodName, reqBuf)
+		if err != nil {
+			panic(err)
+		}
+		_, _, err = rc.Decode(resBuf.([]byte), res)
+		if err != nil {
+			panic(err)
 		}
 
 		log.Println(res)

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"sync"
 
 	"github.com/cloudwego/kitex/pkg/generic"
 	"github.com/cloudwego/kitex/pkg/registry"
@@ -18,16 +19,43 @@ func main() {
 	}
 
 	g := generic.BinaryThriftGeneric()
-	addr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:8081")
-	svr := genericserver.NewServer(
+
+	
+	svr0 := genericserver.NewServer(
 		&Service2Impl{},
 		g,
+		server.WithMiddleware(PrintService2Server1),
 		server.WithRegistry(r),
-		server.WithRegistryInfo(&registry.Info{ServiceName: "service2", Weight: 1}),
-		server.WithServiceAddr(addr))
+		server.WithRegistryInfo(&registry.Info{ServiceName: "service2v1", Weight: 1}),
+		server.WithServiceAddr(&net.TCPAddr{Port: 8090}),
+	)
+	svr1 := genericserver.NewServer(
+		&Service2Impl{},
+		g,
+		server.WithMiddleware(PrintService2Server2),
+		server.WithRegistry(r),
+		server.WithRegistryInfo(&registry.Info{ServiceName: "service2v1", Weight: 1}),
+		server.WithServiceAddr(&net.TCPAddr{Port: 8091}),
+	)
 
-	err = svr.Run()
-	if err != nil {
-		panic(err)
-	}
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		if err := svr0.Run(); err != nil {
+			log.Println("server0 stopped with error:", err)
+		} else {
+			log.Println("server0 stopped")
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		if err := svr1.Run(); err != nil {
+			log.Println("server1 stopped with error:", err)
+		} else {
+			log.Println("server1 stopped")
+		}
+	}()
+	wg.Wait()
 }
