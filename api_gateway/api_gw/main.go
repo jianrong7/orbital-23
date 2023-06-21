@@ -20,7 +20,7 @@ import (
 func main() {
 	h := initHTTPServer()
 
-	r, err := consul.NewConsulResolver("127.0.0.1:8500")
+	r, err := consul.NewConsulResolver("13.229.205.99:8500")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	service2Cli, err := genericclient.NewClient("service2", generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 	if err != nil {
 		panic(err)
@@ -42,12 +42,12 @@ func main() {
 		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
 
 		req, res, err := FillRequestGetResponse(serviceName, methodName, ctx)
-		
+
 		if err != nil {
 			log.Println("Problem filling request struct")
 			panic(err)
 		}
-		
+
 		reqBuf, err := rc.Encode(methodName, thrift.CALL, 1, req)
 		if err != nil {
 			panic(err)
@@ -73,7 +73,6 @@ func main() {
 			}
 		}
 
-		
 		log.Println(res)
 		ctx.JSON(consts.StatusOK, res)
 	})
