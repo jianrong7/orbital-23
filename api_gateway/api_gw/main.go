@@ -20,9 +20,10 @@ import (
 func main() {
 	h := initHTTPServer()
 
-	r, err := consul.NewConsulResolver("13.229.205.99:8500")
+	r, err := consul.NewConsulResolver("127.0.0.1:8500")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Problem adding Consul Resolver")
+		panic(err)
 	}
 
 	rc := utils.NewThriftMessageCodec()
@@ -35,25 +36,30 @@ func main() {
 
 		if err != nil {
 			log.Println("Problem filling request struct")
+			ctx.AbortWithError(consts.StatusBadRequest, err)
 			panic(err)
 		}
 
 		reqBuf, err := rc.Encode(methodName, thrift.CALL, 1, req)
 		if err != nil {
+			log.Println("Problem encoding request struct to thrift")
 			panic(err)
 		}
 
 		rpcClient, err := genericclient.NewClient(serviceName, generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
+			log.Println("Problem creating new generic client")
 			panic(err)
 		}
 
 		resBuf, err := rpcClient.GenericCall(context.Background(), methodName, reqBuf)
 		if err != nil {
+			log.Println("Problem with generic call")
 			panic(err)
 		}
 		_, _, err = rc.Decode(resBuf.([]byte), res)
 		if err != nil {
+			log.Println("Problem decoding thrift binary")
 			panic(err)
 		}
 

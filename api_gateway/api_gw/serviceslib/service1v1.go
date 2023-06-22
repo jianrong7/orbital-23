@@ -12,8 +12,7 @@ func Service1v1(methodName string, ctx *app.RequestContext) (requestStruct thrif
 	switch methodName {
 	case "Add":
 		var req s1v1.AddRequest
-		err = jsoniter.Unmarshal(ctx.GetRawData(), &req) // or use BindAndValidate
-		// perform checks on unmarshalled data
+		err = jsoniter.Unmarshal(ctx.GetRawData(), &req)
 		var res s1v1.AddResponse
 		return &req, &res, err
 	}
