@@ -29,7 +29,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
-	
+
 		return respBuf, nil
 
 	case "Sub":
@@ -43,7 +43,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
-	
+
 		return respBuf, nil
 	}
 	return
