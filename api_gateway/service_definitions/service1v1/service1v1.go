@@ -12,15 +12,14 @@ import (
 	consul "github.com/kitex-contrib/registry-consul"
 )
 
-
 func main() {
-	r, err := consul.NewConsulRegister("127.0.0.1:8500")
+	r, err := consul.NewConsulRegister("13.229.205.99:8500")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	g := generic.BinaryThriftGeneric()
-	
+
 	svr0 := genericserver.NewServer(
 		&Service1Impl{},
 		g,

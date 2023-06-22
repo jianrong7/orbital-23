@@ -13,14 +13,14 @@ import (
 
 func initHTTPServer() *server.Hertz {
 	config := consulapi.DefaultConfig()
-	config.Address = "127.0.0.1:8500"
+	config.Address = "13.229.205.99:8500"
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
 		panic(err)
 	}
 
-	addr := net.JoinHostPort("127.0.0.1", "8888")
+	addr := net.JoinHostPort("18.139.209.232", "80")
 	r := consul.NewConsulRegister(consulClient)
 	return server.Default(
 		server.WithHostPorts(addr),

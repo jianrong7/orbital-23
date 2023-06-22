@@ -20,7 +20,7 @@ import (
 func main() {
 	h := initHTTPServer()
 
-	r, err := consul.NewConsulResolver("127.0.0.1:8500")
+	r, err := consul.NewConsulResolver("13.229.205.99:8500")
 	if err != nil {
 		log.Println("Problem adding Consul Resolver")
 		panic(err)
