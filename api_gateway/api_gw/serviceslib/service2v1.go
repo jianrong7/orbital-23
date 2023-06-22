@@ -2,6 +2,7 @@ package services
 
 import (
 	s2v1 "api_gw/service_definitions/kitex_gen/service2v1"
+	"errors"
 
 	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/cloudwego/hertz/pkg/app"
@@ -16,5 +17,5 @@ func Service2v1(methodName string, ctx *app.RequestContext) (requestStruct thrif
 		var res s2v1.MulResponse
 		return &req, &res, err
 	}
-	return
+	return nil, nil, errors.New("No method found associated with service")
 }

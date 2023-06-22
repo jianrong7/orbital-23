@@ -23,6 +23,5 @@ func Service1v2(methodName string, ctx *app.RequestContext) (requestStruct thrif
 		var res s1v2.SubResponse
 		return &req, &res, err
 	}
-
 	return nil, nil, errors.New("No method found associated with service")
 }
