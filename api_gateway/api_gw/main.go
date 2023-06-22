@@ -46,7 +46,7 @@ func main() {
 			panic(err)
 		}
 
-		rpcClient, err := genericclient.NewClient(serviceName, generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
+		rpcClient, err := genericclient.NewClient(serviceName, generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*10))
 		if err != nil {
 			log.Println("Problem creating new generic client")
 			panic(err)
