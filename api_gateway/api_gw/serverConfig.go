@@ -20,7 +20,7 @@ func initHTTPServer() *server.Hertz {
 		panic(err)
 	}
 
-	addr := net.JoinHostPort("0.0.0.0", "80")
+	addr := net.JoinHostPort("0.0.0.0", "8080")
 	r := consul.NewConsulRegister(consulClient)
 	return server.Default(
 		server.WithHostPorts(addr),
