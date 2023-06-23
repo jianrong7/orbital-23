@@ -4,8 +4,8 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
-const CONSUL_SERVER_ADDR = "54.255.25.193:8500"
-const API_GW_ADDR = "18.136.195.126:8888"
+const CONSUL_SERVER_ADDR = "172.31.28.216:8500"
+const API_GW_ADDR = "172.31.22.36:8888"
 
 func initHTTPServer() *server.Hertz {
 	// config := consulapi.DefaultConfig()
