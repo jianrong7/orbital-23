@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	r, err := consul.NewConsulRegister("13.229.205.99:8500")
+	r, err := consul.NewConsulRegister("54.255.25.193:8500")
 	if err != nil {
 		log.Fatal(err)
 	}

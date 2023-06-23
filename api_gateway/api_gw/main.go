@@ -20,7 +20,7 @@ import (
 func main() {
 	h := initHTTPServer()
 
-	r, err := consul.NewConsulResolver("13.229.205.99:8500")
+	r, err := consul.NewConsulResolver(CONSUL_SERVER_ADDR)
 	if err != nil {
 		log.Println("Problem adding Consul Resolver")
 		panic(err)
@@ -39,6 +39,7 @@ func main() {
 			ctx.AbortWithError(consts.StatusBadRequest, err)
 			panic(err)
 		}
+		log.Println(req)
 
 		reqBuf, err := rc.Encode(methodName, thrift.CALL, 1, req)
 		if err != nil {
