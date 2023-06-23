@@ -10,9 +10,6 @@ import (
 	hertzZerolog "github.com/hertz-contrib/logger/zerolog"
 )
 
-// RequestIDHeaderValue value for the request id header
-// const RequestIDHeaderValue = "X-Request-ID"
-
 // LoggerMiddleware middleware for logging incoming requests
 func LoggerMiddleware() app.HandlerFunc {
 	return func(c context.Context, ctx *app.RequestContext) {
@@ -24,11 +21,6 @@ func LoggerMiddleware() app.HandlerFunc {
 					ctx.Next(c)
 					return
 			}
-			
-			// reqId := c.Value(RequestIDHeaderValue).(string)
-			// if reqId != "" {
-			// 		logger = logger.WithField("request_id", reqId)
-			// }
 			
 			c = logger.WithContext(c)
 			

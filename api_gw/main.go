@@ -25,7 +25,7 @@ func main() {
 
 	r, err := consul.NewConsulResolver(CONSUL_SERVER_ADDR)
 	if err != nil {
-		log.Println("Problem adding Consul Resolver")
+		hlog.Error("Problem adding Consul Resolver")
 		panic(err)
 	}
 
@@ -38,32 +38,31 @@ func main() {
 		req, res, err := FillRequestGetResponse(serviceName, methodName, ctx)
 
 		if err != nil {
-			log.Println("Problem filling request struct")
+			hlog.Error("Problem filling request struct")
 			ctx.AbortWithError(consts.StatusBadRequest, err)
 			panic(err)
 		}
-		log.Println(req)
 
 		reqBuf, err := rc.Encode(methodName, thrift.CALL, 1, req)
 		if err != nil {
-			log.Println("Problem encoding request struct to thrift")
+			hlog.Error("Problem encoding request struct to thrift")
 			panic(err)
 		}
 
 		rpcClient, err := genericclient.NewClient(serviceName, generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*10))
 		if err != nil {
-			log.Println("Problem creating new generic client")
+			hlog.Error("Problem creating new generic client")
 			panic(err)
 		}
 
 		resBuf, err := rpcClient.GenericCall(context.Background(), methodName, reqBuf)
 		if err != nil {
-			log.Println("Problem with generic call")
+			hlog.Error("Problem with generic call")
 			panic(err)
 		}
 		_, _, err = rc.Decode(resBuf.([]byte), res)
 		if err != nil {
-			log.Println("Problem decoding thrift binary")
+			hlog.Error("Problem decoding thrift binary")
 			panic(err)
 		}
 
