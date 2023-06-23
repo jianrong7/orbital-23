@@ -19,7 +19,7 @@ func initHTTPServer() *server.Hertz {
 	// addr := net.JoinHostPort("127.0.0.1", "8888")
 	// r := consul.NewConsulRegister(consulClient)
 	return server.Default(
-		server.WithHostPorts(API_GW_ADDR),
+		server.WithHostPorts("0.0.0.0:8888"),
 	// 	server.WithRegistry(r, &registry.Info{
 	// 		ServiceName: "hertz.test.demo",
 	// 		Addr:        utils.NewNetAddr("tcp", net.JoinHostPort("127.0.0.1", "8888")),
