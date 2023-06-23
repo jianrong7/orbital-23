@@ -26,7 +26,7 @@ func main() {
 		server.WithMiddleware(PrintService1Server1),
 		server.WithRegistry(r),
 		server.WithRegistryInfo(&registry.Info{ServiceName: "service1v1", Weight: 1}), // can experiment with changing the weight, higher weight means higher likelihood of being used.
-		server.WithServiceAddr(&net.TCPAddr{IP: net.IPv4(54, 169, 139, 191), Port: 8080}),
+		server.WithServiceAddr(&net.TCPAddr{Port: 8080}),
 	)
 	svr1 := genericserver.NewServer(
 		&Service1Impl{},
@@ -34,7 +34,7 @@ func main() {
 		server.WithMiddleware(PrintService1Server2),
 		server.WithRegistry(r),
 		server.WithRegistryInfo(&registry.Info{ServiceName: "service1v1", Weight: 1}),
-		server.WithServiceAddr(&net.TCPAddr{IP: net.IPv4(54, 169, 139, 191), Port: 8081}),
+		server.WithServiceAddr(&net.TCPAddr{Port: 8081}),
 	)
 
 	var wg sync.WaitGroup
