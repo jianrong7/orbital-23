@@ -20,7 +20,7 @@ func main() {
 
 	g := generic.BinaryThriftGeneric()
 
-	log.Println(net.InterfaceAddrs())
+	// log.Println(net.InterfaceAddrs())
 
 	svr0 := genericserver.NewServer(
 		&Service1Impl{},
