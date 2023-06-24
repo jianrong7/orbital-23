@@ -24,7 +24,7 @@ func main() {
 	svr0 := genericserver.NewServer(
 		&Service2Impl{},
 		g,
-		server.WithMiddleware(PrintService2Server1),
+		server.WithMiddleware(PrintService2Server0),
 		server.WithRegistry(r),
 		server.WithRegistryInfo(&registry.Info{ServiceName: "service2v1", Weight: 1}),
 		server.WithServiceAddr(&net.TCPAddr{Port: 8090}),
@@ -32,14 +32,22 @@ func main() {
 	svr1 := genericserver.NewServer(
 		&Service2Impl{},
 		g,
-		server.WithMiddleware(PrintService2Server2),
+		server.WithMiddleware(PrintService2Server1),
 		server.WithRegistry(r),
 		server.WithRegistryInfo(&registry.Info{ServiceName: "service2v1", Weight: 1}),
 		server.WithServiceAddr(&net.TCPAddr{Port: 8091}),
 	)
+	svr2 := genericserver.NewServer(
+		&Service2Impl{},
+		g,
+		server.WithMiddleware(PrintService2Server2),
+		server.WithRegistry(r),
+		server.WithRegistryInfo(&registry.Info{ServiceName: "service2v1", Weight: 1}),
+		server.WithServiceAddr(&net.TCPAddr{Port: 8092}),
+	)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		if err := svr0.Run(); err != nil {
@@ -52,6 +60,15 @@ func main() {
 	go func() {
 		defer wg.Done()
 		if err := svr1.Run(); err != nil {
+			log.Println("server1 stopped with error:", err)
+		} else {
+			log.Println("server1 stopped")
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		if err := svr2.Run(); err != nil {
 			log.Println("server1 stopped with error:", err)
 		} else {
 			log.Println("server1 stopped")
