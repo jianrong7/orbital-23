@@ -18,9 +18,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	g := generic.BinaryThriftGeneric()
-
-	// log.Println(net.InterfaceAddrs())
+	p, err := generic.NewThriftFileProvider("./service1v1.thrift")
+    if err != nil {
+        panic(err)
+    }
+    g, err := generic.JSONThriftGeneric(p)
+    if err != nil {
+        panic(err)
+    }
 
 	svr0 := genericserver.NewServer(
 		&Service1Impl{},
