@@ -15,6 +15,7 @@ import (
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
 	hertzZerolog "github.com/hertz-contrib/logger/zerolog"
+	jsoniter "github.com/json-iterator/go"
 	consul "github.com/kitex-contrib/registry-consul"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -84,6 +85,12 @@ func main() {
 			panic(err)
 		}
 
+		err = jsoniter.UnmarshalFromString(res.(string), &res)
+		if err != nil {
+			hlog.Error("Problem with unmarshalling")
+			panic(err)
+		}
+		
 		log.Println(res)
 		ctx.JSON(consts.StatusOK, res)
 	})
