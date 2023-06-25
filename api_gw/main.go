@@ -47,7 +47,7 @@ func main() {
 	h := server.Default()
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := consul.NewConsulResolver(CONSUL_SERVER_ADDR)
+	r, err := consul.NewConsulResolver("127.0.0.1:8500")
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver")
 		panic(err)
