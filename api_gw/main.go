@@ -79,8 +79,7 @@ func main() {
 			}
 			versionNumber = idlmVersionNumber
 		}
-
-		log.Println(versionNumber)
+		
 		thriftFileDir := "./thrift_files/" + serviceMap[serviceName]
 
 		p, err := generic.NewThriftFileProvider(thriftFileDir)
