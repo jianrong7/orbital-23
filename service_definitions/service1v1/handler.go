@@ -30,5 +30,4 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		return res, nil
 	}
 	return
-
 }
