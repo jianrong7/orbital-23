@@ -44,10 +44,10 @@ func addThriftFile(serviceName string, idlmClient idlm.Client) (thriftFileName s
 }
 
 func main() {
-	h := server.Default()
+	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := consul.NewConsulResolver("127.0.0.1:8500")
+	r, err := consul.NewConsulResolver("172.31.28.216:8500")
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver")
 		panic(err)
@@ -79,7 +79,7 @@ func main() {
 			}
 			versionNumber = idlmVersionNumber
 		}
-		
+
 		thriftFileDir := "./thrift_files/" + serviceMap[serviceName]
 
 		p, err := generic.NewThriftFileProvider(thriftFileDir)
