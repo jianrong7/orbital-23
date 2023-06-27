@@ -64,54 +64,70 @@ func main() {
 		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			ctx.JSON(consts.StatusBadRequest, err.Error())
+			return
 		}
+
 		idlmVersionNumber, _ := idlmClient.CheckVersion(context.Background())
 
+		// if there is a version update on the idlmanagement service, overwrite existing files / download new files
+		// if service is not found in the local map, download it
+		// if service is not found on the idlmanagement service, throw an error
+		// if service is found, set the thriftFileDir
 		if versionNumber != idlmVersionNumber || serviceMap[serviceName] == "" {
 			serviceMap[serviceName], err = addThriftFile(serviceName, idlmClient)
 			if serviceMap[serviceName] == "" {
 				hlog.Error("Problem adding thrift file")
 				ctx.JSON(consts.StatusBadRequest, err.Error())
+				return
 			}
 			if err != nil {
 				hlog.Error("Problem adding thrift file")
 				ctx.JSON(consts.StatusBadRequest, err.Error())
+				return
 			}
 			versionNumber = idlmVersionNumber
 		}
 
 		thriftFileDir := "./thrift_files/" + serviceMap[serviceName]
 
+		// Process RPC Call
+
 		p, err := generic.NewThriftFileProvider(thriftFileDir)
 		if err != nil {
 			hlog.Error("Problem adding new thrift file provider")
 			ctx.JSON(consts.StatusBadRequest, err.Error())
+			return
 		}
 
 		g, err := generic.JSONThriftGeneric(p)
 		if err != nil {
 			hlog.Error("Problem creating new JSONThriftGeneric")
 			ctx.JSON(consts.StatusBadRequest, err.Error())
+			return
 		}
 
 		rpcClient, err := genericclient.NewClient(serviceName, g, client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			hlog.Error("Problem creating new generic client")
 			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
 		}
 
 		res, err := rpcClient.GenericCall(context.Background(), methodName, string(ctx.GetRawData()))
 		if err != nil {
 			hlog.Error("Problem with generic call")
 			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
 		}
 
 		err = jsoniter.UnmarshalFromString(res.(string), &res)
 		if err != nil {
 			hlog.Error("Problem with unmarshalling")
 			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
 		}
 
+		// no errors, set result in RequestContext
 		log.Println(res)
 		ctx.JSON(consts.StatusOK, res)
 	})
