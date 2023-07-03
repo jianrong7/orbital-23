@@ -3,69 +3,131 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
-	"github.com/apache/thrift/lib/go/thrift"
+	idlm "api_gw/service_definitions/kitex_gen/idlmanagement/idlmanagement"
+
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
-	"github.com/cloudwego/kitex/pkg/utils"
 	hertzZerolog "github.com/hertz-contrib/logger/zerolog"
+	jsoniter "github.com/json-iterator/go"
 	consul "github.com/kitex-contrib/registry-consul"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
+func addThriftFile(serviceName string, idlmClient idlm.Client) (thriftFileName string, err error) {
+	thriftFileName, err = idlmClient.GetServiceThriftFileName(context.Background(), serviceName)
+	if err != nil {
+		return "", err
+	}
+	file, err := os.Create("./thrift_files/" + thriftFileName)
+	if err != nil {
+		hlog.Error("Problem creating new thrift file: " + thriftFileName)
+		panic(err)
+	}
+	content, err := idlmClient.GetThriftFile(context.Background(), serviceName)
+	if err != nil {
+		hlog.Error("Problem getting thrift file")
+		panic(err)
+	}
+	size, err := file.WriteString(content)
+	defer file.Close()
+	log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
+	return thriftFileName, err
+}
+
 func main() {
-	h := initHTTPServer()
+	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := consul.NewConsulResolver(CONSUL_SERVER_ADDR)
+	r, err := consul.NewConsulResolver("172.31.28.216:8500")
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver")
 		panic(err)
 	}
 
-	rc := utils.NewThriftMessageCodec()
+	var versionNumber string
+	serviceMap := make(map[string]string)
 
 	h.POST("/:service/:method", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
 		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
 		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
 
-		req, res, err := FillRequestGetResponse(serviceName, methodName, ctx)
-
+		// check version number with IDL management service
+		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
-			hlog.Error("Problem filling request struct")
-			ctx.AbortWithError(consts.StatusBadRequest, err)
-			panic(err)
+			ctx.JSON(consts.StatusBadRequest, err.Error())
+			return
 		}
 
-		reqBuf, err := rc.Encode(methodName, thrift.CALL, 1, req)
-		if err != nil {
-			hlog.Error("Problem encoding request struct to thrift")
-			panic(err)
+		idlmVersionNumber, _ := idlmClient.CheckVersion(context.Background())
+
+		// if there is a version update on the idlmanagement service, overwrite existing files / download new files
+		// if service is not found in the local map, download it
+		// if service is not found on the idlmanagement service, throw an error
+		// if service is found, set the thriftFileDir
+		if versionNumber != idlmVersionNumber || serviceMap[serviceName] == "" {
+			serviceMap[serviceName], err = addThriftFile(serviceName, idlmClient)
+			if serviceMap[serviceName] == "" {
+				hlog.Error("Problem adding thrift file")
+				ctx.JSON(consts.StatusBadRequest, err.Error())
+				return
+			}
+			if err != nil {
+				hlog.Error("Problem adding thrift file")
+				ctx.JSON(consts.StatusBadRequest, err.Error())
+				return
+			}
+			versionNumber = idlmVersionNumber
 		}
 
-		rpcClient, err := genericclient.NewClient(serviceName, generic.BinaryThriftGeneric(), client.WithResolver(r), client.WithRPCTimeout(time.Second*10))
+		thriftFileDir := "./thrift_files/" + serviceMap[serviceName]
+
+		// Process RPC Call
+
+		p, err := generic.NewThriftFileProvider(thriftFileDir)
+		if err != nil {
+			hlog.Error("Problem adding new thrift file provider")
+			ctx.JSON(consts.StatusBadRequest, err.Error())
+			return
+		}
+
+		g, err := generic.JSONThriftGeneric(p)
+		if err != nil {
+			hlog.Error("Problem creating new JSONThriftGeneric")
+			ctx.JSON(consts.StatusBadRequest, err.Error())
+			return
+		}
+
+		rpcClient, err := genericclient.NewClient(serviceName, g, client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			hlog.Error("Problem creating new generic client")
-			panic(err)
+			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
 		}
 
-		resBuf, err := rpcClient.GenericCall(context.Background(), methodName, reqBuf)
+		res, err := rpcClient.GenericCall(context.Background(), methodName, string(ctx.GetRawData()))
 		if err != nil {
 			hlog.Error("Problem with generic call")
-			panic(err)
-		}
-		_, _, err = rc.Decode(resBuf.([]byte), res)
-		if err != nil {
-			hlog.Error("Problem decoding thrift binary")
-			panic(err)
+			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
 		}
 
+		err = jsoniter.UnmarshalFromString(res.(string), &res)
+		if err != nil {
+			hlog.Error("Problem with unmarshalling")
+			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// no errors, set result in RequestContext
 		log.Println(res)
 		ctx.JSON(consts.StatusOK, res)
 	})

@@ -6,8 +6,7 @@ import (
 
 	s2v1 "api_gw/service_definitions/kitex_gen/service2v1"
 
-	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/cloudwego/kitex/pkg/utils"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Service2Impl implements the last service interface defined in the IDL.
@@ -16,22 +15,20 @@ type Service2Impl struct{}
 // Mul implements the Service2Impl interface.
 func (g *Service2Impl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
 	log.Println("GenericCall from handler2:", request)
-	rc := utils.NewThriftMessageCodec()
-	reqBuf := request.([]byte)
+	reqBuf := request.(string)
 	switch method {
 	case "Mul":
 		var req s2v1.MulRequest
-			_, seqId, err := rc.Decode(reqBuf, &req)
+		err = jsoniter.UnmarshalFromString(reqBuf, &req)
 		if err != nil {
 			panic(err)
 		}
-		result := &s2v1.MulResponse{Sum: req.First * req.Second}
-		respBuf, err := rc.Encode(method, thrift.REPLY, seqId, result)
+		respBuf := &s2v1.MulResponse{Sum: req.First * req.Second}
+		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
 			panic(err)
 		}
-	
-		return respBuf, nil
+		return res, nil
 	}
 	return
 }

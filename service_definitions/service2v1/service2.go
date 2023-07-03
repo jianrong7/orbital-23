@@ -13,14 +13,20 @@ import (
 )
 
 func main() {
-	r, err := consul.NewConsulRegister("127.0.0.1:8500")
+	r, err := consul.NewConsulRegister("172.31.28.216:8500")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	g := generic.BinaryThriftGeneric()
+	p, err := generic.NewThriftFileProvider("./service2v1.thrift")
+	if err != nil {
+		panic(err)
+	}
+	g, err := generic.JSONThriftGeneric(p)
+	if err != nil {
+		panic(err)
+	}
 
-	
 	svr0 := genericserver.NewServer(
 		&Service2Impl{},
 		g,
