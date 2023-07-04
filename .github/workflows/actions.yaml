@@ -50,6 +50,9 @@ jobs:
         id: apply
         run: terraform apply -auto-approve
         working-directory: infrastructure
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
 # - uses: actions/github-script@v6
 #   if: github.event_name == 'pull_request'
 #   env:
