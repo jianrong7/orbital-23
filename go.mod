@@ -6,6 +6,7 @@ require (
 	github.com/apache/thrift v0.18.1
 	github.com/cloudwego/hertz v0.6.4
 	github.com/cloudwego/kitex v0.5.2
+	github.com/hertz-contrib/cors v0.0.0-20230423034624-2bc83a8400f0
 	github.com/hertz-contrib/logger/zerolog v0.0.0-20230619034227-00fc458d8f95
 	github.com/json-iterator/go v1.1.12
 )
