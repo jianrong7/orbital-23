@@ -2,17 +2,18 @@
 
 import { lowlight } from "lowlight/lib/core";
 import json from "highlight.js/lib/languages/json";
-lowlight.registerLanguage("json", json);
-
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { useEffect } from "react";
+
 import useRequestStore from "@/stores/request.store";
 
 import "highlight.js/styles/github.css";
-import { useEffect } from "react";
+
+lowlight.registerLanguage("json", json);
 
 const BodyRequest = () => {
   const { setJsonBody } = useRequestStore((state) => ({
@@ -42,7 +43,7 @@ const BodyRequest = () => {
       <h2>JSON Body</h2>
       <EditorContent
         editor={editor}
-        className="bg-white text-black p-2 max-h-96"
+        className="bg-white text-black p-2 max-h-96 rounded"
       />
     </div>
   );

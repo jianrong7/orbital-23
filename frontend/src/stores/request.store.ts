@@ -20,8 +20,8 @@ const useRequestStore = create<RequestStore>((set, get) => ({
   setResponse: (response: any) => set({ response }),
   sendRequest: async () => {
     const { url, jsonBody } = get();
-    console.log(url, jsonBody);
     const data = await axios.post(url, jsonBody);
+    console.log("data:", data);
     set({ response: data });
   },
 }));

@@ -1,7 +1,5 @@
 "use client";
 
-import axios from "axios";
-import { useState } from "react";
 import useRequestStore from "@/stores/request.store";
 
 const UrlInput = () => {
