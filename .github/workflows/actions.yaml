@@ -1,19 +1,13 @@
 name: Deploy Infrastructure
 
-# on:
-#   pull_request:
-#     types:
-#       - closed
-
 on:
-  push:
-    branches:
-      - feat/postman-emulator-fe
+  pull_request:
+    types:
+      - closed
 
 jobs:
-  tf:
-    # if_merged:
-    #   if: github.event.pull_request.merged == true
+  if_merged:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     strategy:
