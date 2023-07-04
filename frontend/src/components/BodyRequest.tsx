@@ -43,7 +43,7 @@ const BodyRequest = () => {
       <h2>JSON Body</h2>
       <EditorContent
         editor={editor}
-        className="bg-white text-black p-2 max-h-96 rounded"
+        className="bg-white text-black p-2 max-h-96 rounded border-black"
       />
     </div>
   );
