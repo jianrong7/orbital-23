@@ -11,6 +11,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/cloudwego/hertz/pkg/common/utils"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/client/genericclient"
@@ -22,7 +23,19 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
+func genErrResp(ctx *app.RequestContext, statusCode int, err error) {
+	ctx.JSON(statusCode, utils.H{
+		"error": utils.H{
+			"code": statusCode,
+			"message": err.Error(),
+		},
+	})
+}
+func genSucResp(ctx *app.RequestContext, res interface{}) {
+	ctx.JSON(consts.StatusAccepted, utils.H{
+		"data": res,
+	})
+}
 func addThriftFile(serviceName string, idlmClient idlm.Client) (thriftFileName string, err error) {
 	thriftFileName, err = idlmClient.GetServiceThriftFileName(context.Background(), serviceName)
 	if err != nil {
@@ -71,7 +84,7 @@ func main() {
 		// check version number with IDL management service
 		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
-			ctx.JSON(consts.StatusBadRequest, err.Error())
+			genErrResp(ctx, consts.StatusBadRequest, err)
 			return
 		}
 
@@ -83,14 +96,9 @@ func main() {
 		// if service is found, set the thriftFileDir
 		if versionNumber != idlmVersionNumber || serviceMap[serviceName] == "" {
 			serviceMap[serviceName], err = addThriftFile(serviceName, idlmClient)
-			if serviceMap[serviceName] == "" {
+			if serviceMap[serviceName] == "" || err != nil {
 				hlog.Error("Problem adding thrift file")
-				ctx.JSON(consts.StatusBadRequest, err.Error())
-				return
-			}
-			if err != nil {
-				hlog.Error("Problem adding thrift file")
-				ctx.JSON(consts.StatusBadRequest, err.Error())
+				genErrResp(ctx, consts.StatusBadRequest, err)
 				return
 			}
 			versionNumber = idlmVersionNumber
@@ -103,41 +111,39 @@ func main() {
 		p, err := generic.NewThriftFileProvider(thriftFileDir)
 		if err != nil {
 			hlog.Error("Problem adding new thrift file provider")
-			ctx.JSON(consts.StatusBadRequest, err.Error())
+			genErrResp(ctx, consts.StatusBadRequest, err)
 			return
 		}
 
 		g, err := generic.JSONThriftGeneric(p)
 		if err != nil {
 			hlog.Error("Problem creating new JSONThriftGeneric")
-			ctx.JSON(consts.StatusBadRequest, err.Error())
+			genErrResp(ctx, consts.StatusBadRequest, err)
 			return
 		}
 
 		rpcClient, err := genericclient.NewClient(serviceName, g, client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			hlog.Error("Problem creating new generic client")
-			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			genErrResp(ctx, consts.StatusBadRequest, err)
 			return
 		}
 
 		res, err := rpcClient.GenericCall(context.Background(), methodName, string(ctx.GetRawData()))
 		if err != nil {
 			hlog.Error("Problem with generic call")
-			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			genErrResp(ctx, consts.StatusInternalServerError, err)
 			return
 		}
 
 		err = jsoniter.UnmarshalFromString(res.(string), &res)
 		if err != nil {
 			hlog.Error("Problem with unmarshalling")
-			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			genErrResp(ctx, consts.StatusInternalServerError, err)
 			return
 		}
 
-		// no errors, set result in RequestContext
-		log.Println(res)
-		ctx.JSON(consts.StatusOK, res)
+		genSucResp(ctx, res)
 	})
 
 	register(h)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	s1v1 "api_gw/service_definitions/kitex_gen/service1v1"
@@ -18,16 +19,19 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 	switch method {
 	case "Add":
 		var req s1v1.AddRequest
+		log.Println("reqbuf",reqBuf)
 		err = jsoniter.UnmarshalFromString(reqBuf, &req)
 		if err != nil {
 			panic(err)
 		}
+		log.Println(req)
 		respBuf := &s1v1.AddResponse{Sum: req.First + req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
 			panic(err)
 		}
 		return res, nil
+		default:
+			return nil, errors.New("Unknown method: " + method)
 	}
-	return
 }
