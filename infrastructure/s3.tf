@@ -47,10 +47,10 @@ resource "aws_s3_bucket_acl" "frontend_bucket" {
 resource "aws_s3_object" "nextjs_app_files" {
   for_each = fileset("${path.module}/../frontend/out", "**/*")
 
-  bucket = aws_s3_bucket.frontend_bucket.id
-  key    = each.value
-  source = "${path.module}/../frontend/out/${each.value}"
-  etag   = filemd5("${path.module}/../frontend/out/${each.value}")
+  bucket       = aws_s3_bucket.frontend_bucket.id
+  key          = each.value
+  source       = "${path.module}/../frontend/out/${each.value}"
+  etag         = filemd5("${path.module}/../frontend/out/${each.value}")
   content_type = "text/html"
 }
 
