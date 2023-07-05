@@ -23,7 +23,7 @@ var serviceMap = map[string]string{
 }
 
 func main() {
-	r, err := consul.NewConsulRegister("172.31.28.216:8500")
+	r, err := consul.NewConsulRegister("127.0.0.1:8500")
 	if err != nil {
 		log.Fatal(err)
 	}

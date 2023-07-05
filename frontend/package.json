@@ -1,0 +1,47 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "rimraf ./out && rimraf ./.next && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "deploy": "rimraf ./out && rimraf ./.next && next build && cd ../infrastructure && terraform apply -auto-approve",
+    "test": "jest --watch",
+    "cypress": "cypress open",
+    "component:headless": "cypress run --component"
+  },
+  "dependencies": {
+    "@tiptap/extension-code-block-lowlight": "^2.0.3",
+    "@tiptap/pm": "^2.0.3",
+    "@tiptap/react": "^2.0.3",
+    "@tiptap/starter-kit": "^2.0.3",
+    "@types/node": "20.3.3",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
+    "autoprefixer": "10.4.14",
+    "axios": "^1.4.0",
+    "eslint": "8.44.0",
+    "eslint-config-next": "13.4.7",
+    "lowlight": "^2.9.0",
+    "next": "13.4.7",
+    "postcss": "8.4.24",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwindcss": "3.3.2",
+    "typescript": "5.1.6",
+    "zustand": "^4.3.8"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
+    "babel-jest": "^29.6.0",
+    "cypress": "^12.16.0",
+    "eslint-plugin-testing-library": "^5.11.0",
+    "jest": "^29.6.0",
+    "jest-environment-jsdom": "^29.6.0",
+    "rimraf": "^5.0.1",
+    "ts-jest": "^29.1.1"
+  }
+}
