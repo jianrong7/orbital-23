@@ -8,20 +8,15 @@ jobs:
   tf:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: true
-      matrix:
-        node-version: [18.x]
-
     name: Frontend Check
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18.x
 
       - run: npm ci
         working-directory: frontend
