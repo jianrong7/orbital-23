@@ -6,6 +6,9 @@ on:
 
 jobs:
   tf:
+    permissions:
+      pull-requests: write
+
     runs-on: ubuntu-latest
 
     strategy:
