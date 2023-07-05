@@ -3,6 +3,8 @@ name: Infrastructure Check
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, edited]
+  push:
+    branches: [feat/postman-emulator-fe]
 
 jobs:
   tf:
