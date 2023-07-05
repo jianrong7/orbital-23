@@ -11,6 +11,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import useRequestStore from "@/stores/request.store";
 
 import "highlight.js/styles/github.css";
+import { useEffect } from "react";
 
 lowlight.registerLanguage("json", json);
 
@@ -40,6 +41,16 @@ const Response = () => {
     response?.status >= 200 && response?.status < 300
       ? "text-green-500"
       : "text-red-500";
+
+  useEffect(() => {
+    editor?.commands?.setContent(
+      `<pre><code class="language-json">${JSON.stringify(
+        response?.data,
+        null,
+        4
+      )}</code></pre>`
+    );
+  }, [response?.data]);
 
   if (!response || !editor) return null;
 

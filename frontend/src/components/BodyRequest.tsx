@@ -1,6 +1,6 @@
 "use client";
 
-import { lowlight } from "lowlight/lib/core";
+import { lowlight } from "lowlight/lib/core.js";
 import json from "highlight.js/lib/languages/json";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Document from "@tiptap/extension-document";
@@ -16,9 +16,13 @@ import "highlight.js/styles/github.css";
 lowlight.registerLanguage("json", json);
 
 const BodyRequest = () => {
-  const { setJsonBody } = useRequestStore((state) => ({
-    setJsonBody: state.setJsonBody,
-  }));
+  const { setJsonBody, isValidJsonBody, sentRequest } = useRequestStore(
+    (state) => ({
+      setJsonBody: state.setJsonBody,
+      isValidJsonBody: state.isValidJsonBody,
+      sentRequest: state.sentRequest,
+    })
+  );
 
   const editor = useEditor({
     extensions: [
@@ -34,6 +38,7 @@ const BodyRequest = () => {
 
   useEffect(() => {
     setJsonBody(editor?.getText());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor?.getText()]);
 
   if (!editor) return null;
@@ -43,7 +48,11 @@ const BodyRequest = () => {
       <h2>JSON Body</h2>
       <EditorContent
         editor={editor}
-        className="bg-white text-black p-2 max-h-96 rounded border-black"
+        className={`bg-white text-black p-2 max-h-96 rounded border-black ${
+          sentRequest && !isValidJsonBody
+            ? "border-red-500 border-2"
+            : "border-black"
+        }`}
       />
     </div>
   );

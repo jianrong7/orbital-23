@@ -28,46 +28,38 @@ jobs:
       - run: npm run build --if-present
         working-directory: frontend
 
-      - uses: hashicorp/setup-terraform@v2
+      - name: Cypress run
+        uses: cypress-io/github-action@v5
+        with:
+          component: true
+      # - uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Init
-        id: init
-        run: terraform init
-        working-directory: infrastructure
+      # - name: Terraform Init
+      #   id: init
+      #   run: terraform init
+      #   working-directory: infrastructure
 
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-        working-directory: infrastructure
+      # - name: Terraform Validate
+      #   id: validate
+      #   run: terraform validate -no-color
+      #   working-directory: infrastructure
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color
-        working-directory: infrastructure
-        continue-on-error: true
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # - name: Terraform Plan
+      #   id: plan
+      #   run: terraform plan -no-color
+      #   working-directory: infrastructure
+      #   continue-on-error: true
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - uses: actions/github-script@v6
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        # env:
+        #   PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            const output = `*Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,

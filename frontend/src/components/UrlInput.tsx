@@ -1,12 +1,23 @@
 "use client";
 
 import useRequestStore from "@/stores/request.store";
+import { isValidHttpUrl, isJsonString } from "@/utils";
 
 const UrlInput = () => {
-  const { url, setUrl, sendRequest } = useRequestStore((state) => ({
+  const {
+    url,
+    setUrl,
+    sendRequest,
+    isSendingRequest,
+    isValidUrl,
+    sentRequest,
+  } = useRequestStore((state) => ({
     url: state.url,
     setUrl: state.setUrl,
     sendRequest: state.sendRequest,
+    isSendingRequest: state.isSendingRequest,
+    isValidUrl: state.isValidUrl,
+    sentRequest: state.sentRequest,
   }));
 
   return (
@@ -15,7 +26,11 @@ const UrlInput = () => {
         type="text"
         id="url"
         name="url"
-        className="text-black w-full rounded p-2"
+        className={`text-black w-full rounded p-2 ${
+          sentRequest && !isValidUrl
+            ? "border-red-500 border-2"
+            : "border-black"
+        }`}
         value={url}
         onChange={(e) => setUrl(e.target.value)}
       />
@@ -24,7 +39,7 @@ const UrlInput = () => {
         className="bg-blue-500 p-2 rounded"
         onClick={sendRequest}
       >
-        Send POST Request
+        {isSendingRequest ? "Loading..." : "Send POST Request"}
       </button>
     </div>
   );
