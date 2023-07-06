@@ -32,7 +32,7 @@ func genErrResp(ctx *app.RequestContext, statusCode int, err error) {
 	})
 }
 func genSucResp(ctx *app.RequestContext, res interface{}) {
-	ctx.JSON(consts.StatusAccepted, utils.H{
+	ctx.JSON(consts.StatusOK, utils.H{
 		"data": res,
 	})
 }
