@@ -17,6 +17,7 @@ require (
 	github.com/google/btree v1.0.0 // indirect
 	github.com/hashicorp/go-msgpack v0.5.5 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
 )
 

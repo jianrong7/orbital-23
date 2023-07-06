@@ -18,6 +18,7 @@ import (
 	"github.com/cloudwego/kitex/pkg/generic"
 	"github.com/hertz-contrib/cors"
 	hertzZerolog "github.com/hertz-contrib/logger/zerolog"
+	"github.com/joho/godotenv"
 	jsoniter "github.com/json-iterator/go"
 	consul "github.com/kitex-contrib/registry-consul"
 	"golang.org/x/text/cases"
@@ -58,7 +59,13 @@ func addThriftFile(serviceName string, idlmClient idlm.Client) (thriftFileName s
 }
 
 func main() {
-	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
+	err := godotenv.Load()
+  if err != nil {
+    log.Fatal("Error loading .env file")
+  }
+	apiGwAddr := os.Getenv("API_GW_ADDR")
+	consulAddr := os.Getenv("CONSUL_ADDR")
+	h := server.Default(server.WithHostPorts(apiGwAddr))
 	h.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"*"},
@@ -68,7 +75,7 @@ func main() {
 	}))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := consul.NewConsulResolver("127.0.0.1:8500")
+	r, err := consul.NewConsulResolver(consulAddr)
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver")
 		panic(err)
