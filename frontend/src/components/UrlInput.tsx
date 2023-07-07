@@ -1,7 +1,6 @@
 "use client";
 
 import useRequestStore from "@/stores/request.store";
-import { isValidHttpUrl, isJsonString } from "@/utils";
 
 const UrlInput = () => {
   const {
