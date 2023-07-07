@@ -90,7 +90,7 @@ func main() {
 
 		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
-			ctx.JSON(consts.StatusBadRequest, err.Error())
+			ctx.JSON(consts.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -114,7 +114,31 @@ func main() {
 		serviceVersion := ctx.Param("version")
 		change := ctx.Param("change")
 
-		log.Println("Updated services")
+		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
+		if err != nil {
+			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			return
+		}
+
+		switch change {
+		case "write":
+			err = addThriftFile(serviceName, serviceVersion, serviceMap, idlmClient)
+			if err != nil {
+				hlog.Error("Problem modifying thrift file: " + serviceName + " " + serviceVersion)
+				panic(err)
+			}
+		case "remove":
+			os.Remove("./thrift_files/" + serviceMap[serviceName][serviceVersion])
+			delete(serviceMap[serviceName], serviceVersion)
+			log.Println("Thrift file removed: " + serviceName + " " + serviceVersion)
+		case "create":
+			err = addThriftFile(serviceName, serviceVersion, serviceMap, idlmClient)
+			if err != nil {
+				hlog.Error("Problem creating thrift file: " + serviceName + " " + serviceVersion)
+				panic(err)
+			}
+		}
+		log.Println("Updated service")
 		ctx.JSON(consts.StatusOK, "")
 	})
 
