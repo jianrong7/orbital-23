@@ -23,11 +23,8 @@ import (
 	"golang.org/x/text/language"
 )
 
-func addThriftFile(serviceName string, idlmClient idlm.Client) (thriftFileName string, err error) {
-	thriftFileName, err = idlmClient.GetServiceThriftFileName(context.Background(), serviceName)
-	if err != nil {
-		return "", err
-	}
+func addThriftFile(serviceName string, serviceVersion string, serviceMap map[string]map[string]string, idlmClient idlm.Client) (err error) {
+	thriftFileName := serviceMap[serviceName][serviceVersion]
 	file, err := os.Create("./thrift_files/" + thriftFileName)
 	if err != nil {
 		hlog.Error("Problem creating new thrift file: " + thriftFileName)
@@ -41,7 +38,7 @@ func addThriftFile(serviceName string, idlmClient idlm.Client) (thriftFileName s
 	size, err := file.WriteString(content)
 	defer file.Close()
 	log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
-	return thriftFileName, err
+	return err
 }
 
 func main() {
@@ -51,7 +48,6 @@ func main() {
 		AllowMethods:     []string{"*"},
 		AllowHeaders:     []string{"*"},
 		AllowCredentials: true,
-		
 	}))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
@@ -61,21 +57,73 @@ func main() {
 		panic(err)
 	}
 
-	var versionNumber string
-	serviceMap := make(map[string]string)
+	serviceMap := make(map[string]map[string]string)
 
-	h.POST("/:service/:method", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
-		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
-		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
+	// serviceMap is a nested map, the outer layer key is the serviceName,
+	// and the inner layer key is the serviceVersion, where the value is the name of the thrift file
+	/*
+		JSON Mapping as follows:
+		{
+			"serviceName1" :
+			{
+				"versionNumber1" : "thriftFileName1",
+				"versionNumber2" : "thriftFileName2"
+			}
+			"serviceName2" :
+			{
+				"versionNumber1" : "thriftFileName3"
+			}
+		}
 
-		// check version number with IDL management service
+		****** All thrift file names must be unique ******
+	*/
+
+	// TODO: add basicauth to this post request path, to prevent malicious attacks on the API Gateway
+
+	h.POST("/idlmanagement/start", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
+		serviceMap = make(map[string]map[string]string)         // reallocate serviceMap to clear all entries
+		err = jsoniter.Unmarshal(ctx.GetRawData(), &serviceMap) // receive the new serviceMap from IDL management service in JSON body
+		if err != nil {
+			hlog.Error("Problem unmarshalling serviceMap")
+			panic(err)
+		}
+
 		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			ctx.JSON(consts.StatusBadRequest, err.Error())
 			return
 		}
 
-		idlmVersionNumber, _ := idlmClient.CheckVersion(context.Background())
+		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using RPC
+			for serviceVersion, _ := range innerMap {
+				err = addThriftFile(serviceName, serviceVersion, serviceMap, idlmClient)
+				if err != nil {
+					hlog.Error("Problem adding thrift file: " + serviceName + " " + serviceVersion)
+					panic(err)
+				}
+			}
+		}
+
+		log.Println("Updated services")
+		ctx.JSON(consts.StatusOK, &serviceMap)
+	})
+
+	h.GET("/idlmanagement/:service/:version/:change", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
+		// update the individual service that was updated during the runtime of IDL management service
+		serviceName := ctx.Param("service")
+		serviceVersion := ctx.Param("version")
+		change := ctx.Param("change")
+
+		log.Println("Updated services")
+		ctx.JSON(consts.StatusOK, "")
+	})
+
+	h.POST("/:service/:version/:method", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
+		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
+		serviceVersion := ctx.Param("version")
+		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
+
+		// check version number with IDL management service
 
 		// if there is a version update on the idlmanagement service, overwrite existing files / download new files
 		// if service is not found in the local map, download it
