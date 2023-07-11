@@ -1,14 +1,15 @@
 package main
 
 import (
+	service2v1 "api_gw/service_definitions/kitex_gen/service2v1"
 	"context"
 )
 
-// IDLManagementImpl implements the last service interface defined in the IDL.
-type IDLManagementImpl struct{}
+// Service2Impl implements the last service interface defined in the IDL.
+type Service2Impl struct{}
 
-// GetThriftFile implements the IDLManagementImpl interface.
-func (s *IDLManagementImpl) GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (resp string, err error) {
+// Mul implements the Service2Impl interface.
+func (s *Service2Impl) Mul(ctx context.Context, req *service2v1.MulRequest) (resp *service2v1.MulResponse, err error) {
 	// TODO: Your code here...
 	return
 }
