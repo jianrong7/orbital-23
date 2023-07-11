@@ -10,11 +10,7 @@ import (
 )
 
 type IDLManagement interface {
-	CheckVersion(ctx context.Context) (r string, err error)
-
-	GetServiceThriftFileName(ctx context.Context, serviceName string) (r string, err error)
-
-	GetThriftFile(ctx context.Context, serviceName string) (r string, err error)
+	GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (r string, err error)
 }
 
 type IDLManagementClient struct {
@@ -43,26 +39,10 @@ func (p *IDLManagementClient) Client_() thrift.TClient {
 	return p.c
 }
 
-func (p *IDLManagementClient) CheckVersion(ctx context.Context) (r string, err error) {
-	var _args IDLManagementCheckVersionArgs
-	var _result IDLManagementCheckVersionResult
-	if err = p.Client_().Call(ctx, "CheckVersion", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-func (p *IDLManagementClient) GetServiceThriftFileName(ctx context.Context, serviceName string) (r string, err error) {
-	var _args IDLManagementGetServiceThriftFileNameArgs
-	_args.ServiceName = serviceName
-	var _result IDLManagementGetServiceThriftFileNameResult
-	if err = p.Client_().Call(ctx, "GetServiceThriftFileName", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-func (p *IDLManagementClient) GetThriftFile(ctx context.Context, serviceName string) (r string, err error) {
+func (p *IDLManagementClient) GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (r string, err error) {
 	var _args IDLManagementGetThriftFileArgs
 	_args.ServiceName = serviceName
+	_args.ServiceVersion = serviceVersion
 	var _result IDLManagementGetThriftFileResult
 	if err = p.Client_().Call(ctx, "GetThriftFile", &_args, &_result); err != nil {
 		return
@@ -90,8 +70,6 @@ func (p *IDLManagementProcessor) ProcessorMap() map[string]thrift.TProcessorFunc
 
 func NewIDLManagementProcessor(handler IDLManagement) *IDLManagementProcessor {
 	self := &IDLManagementProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
-	self.AddToProcessorMap("CheckVersion", &iDLManagementProcessorCheckVersion{handler: handler})
-	self.AddToProcessorMap("GetServiceThriftFileName", &iDLManagementProcessorGetServiceThriftFileName{handler: handler})
 	self.AddToProcessorMap("GetThriftFile", &iDLManagementProcessorGetThriftFile{handler: handler})
 	return self
 }
@@ -111,102 +89,6 @@ func (p *IDLManagementProcessor) Process(ctx context.Context, iprot, oprot thrif
 	oprot.WriteMessageEnd()
 	oprot.Flush(ctx)
 	return false, x
-}
-
-type iDLManagementProcessorCheckVersion struct {
-	handler IDLManagement
-}
-
-func (p *iDLManagementProcessorCheckVersion) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := IDLManagementCheckVersionArgs{}
-	if err = args.Read(iprot); err != nil {
-		iprot.ReadMessageEnd()
-		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-		oprot.WriteMessageBegin("CheckVersion", thrift.EXCEPTION, seqId)
-		x.Write(oprot)
-		oprot.WriteMessageEnd()
-		oprot.Flush(ctx)
-		return false, err
-	}
-
-	iprot.ReadMessageEnd()
-	var err2 error
-	result := IDLManagementCheckVersionResult{}
-	var retval string
-	if retval, err2 = p.handler.CheckVersion(ctx); err2 != nil {
-		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing CheckVersion: "+err2.Error())
-		oprot.WriteMessageBegin("CheckVersion", thrift.EXCEPTION, seqId)
-		x.Write(oprot)
-		oprot.WriteMessageEnd()
-		oprot.Flush(ctx)
-		return true, err2
-	} else {
-		result.Success = &retval
-	}
-	if err2 = oprot.WriteMessageBegin("CheckVersion", thrift.REPLY, seqId); err2 != nil {
-		err = err2
-	}
-	if err2 = result.Write(oprot); err == nil && err2 != nil {
-		err = err2
-	}
-	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
-		err = err2
-	}
-	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
-		err = err2
-	}
-	if err != nil {
-		return
-	}
-	return true, err
-}
-
-type iDLManagementProcessorGetServiceThriftFileName struct {
-	handler IDLManagement
-}
-
-func (p *iDLManagementProcessorGetServiceThriftFileName) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := IDLManagementGetServiceThriftFileNameArgs{}
-	if err = args.Read(iprot); err != nil {
-		iprot.ReadMessageEnd()
-		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-		oprot.WriteMessageBegin("GetServiceThriftFileName", thrift.EXCEPTION, seqId)
-		x.Write(oprot)
-		oprot.WriteMessageEnd()
-		oprot.Flush(ctx)
-		return false, err
-	}
-
-	iprot.ReadMessageEnd()
-	var err2 error
-	result := IDLManagementGetServiceThriftFileNameResult{}
-	var retval string
-	if retval, err2 = p.handler.GetServiceThriftFileName(ctx, args.ServiceName); err2 != nil {
-		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetServiceThriftFileName: "+err2.Error())
-		oprot.WriteMessageBegin("GetServiceThriftFileName", thrift.EXCEPTION, seqId)
-		x.Write(oprot)
-		oprot.WriteMessageEnd()
-		oprot.Flush(ctx)
-		return true, err2
-	} else {
-		result.Success = &retval
-	}
-	if err2 = oprot.WriteMessageBegin("GetServiceThriftFileName", thrift.REPLY, seqId); err2 != nil {
-		err = err2
-	}
-	if err2 = result.Write(oprot); err == nil && err2 != nil {
-		err = err2
-	}
-	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
-		err = err2
-	}
-	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
-		err = err2
-	}
-	if err != nil {
-		return
-	}
-	return true, err
 }
 
 type iDLManagementProcessorGetThriftFile struct {
@@ -229,7 +111,7 @@ func (p *iDLManagementProcessorGetThriftFile) Process(ctx context.Context, seqId
 	var err2 error
 	result := IDLManagementGetThriftFileResult{}
 	var retval string
-	if retval, err2 = p.handler.GetThriftFile(ctx, args.ServiceName); err2 != nil {
+	if retval, err2 = p.handler.GetThriftFile(ctx, args.ServiceName, args.ServiceVersion); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetThriftFile: "+err2.Error())
 		oprot.WriteMessageBegin("GetThriftFile", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
@@ -257,626 +139,9 @@ func (p *iDLManagementProcessorGetThriftFile) Process(ctx context.Context, seqId
 	return true, err
 }
 
-type IDLManagementCheckVersionArgs struct {
-}
-
-func NewIDLManagementCheckVersionArgs() *IDLManagementCheckVersionArgs {
-	return &IDLManagementCheckVersionArgs{}
-}
-
-func (p *IDLManagementCheckVersionArgs) InitDefault() {
-	*p = IDLManagementCheckVersionArgs{}
-}
-
-var fieldIDToName_IDLManagementCheckVersionArgs = map[int16]string{}
-
-func (p *IDLManagementCheckVersionArgs) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		if err = iprot.Skip(fieldTypeId); err != nil {
-			goto SkipFieldTypeError
-		}
-
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-SkipFieldTypeError:
-	return thrift.PrependError(fmt.Sprintf("%T skip field type %d error", p, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *IDLManagementCheckVersionArgs) Write(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteStructBegin("CheckVersion_args"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *IDLManagementCheckVersionArgs) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("IDLManagementCheckVersionArgs(%+v)", *p)
-}
-
-func (p *IDLManagementCheckVersionArgs) DeepEqual(ano *IDLManagementCheckVersionArgs) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	return true
-}
-
-type IDLManagementCheckVersionResult struct {
-	Success *string `thrift:"success,0,optional" frugal:"0,optional,string" json:"success,omitempty"`
-}
-
-func NewIDLManagementCheckVersionResult() *IDLManagementCheckVersionResult {
-	return &IDLManagementCheckVersionResult{}
-}
-
-func (p *IDLManagementCheckVersionResult) InitDefault() {
-	*p = IDLManagementCheckVersionResult{}
-}
-
-var IDLManagementCheckVersionResult_Success_DEFAULT string
-
-func (p *IDLManagementCheckVersionResult) GetSuccess() (v string) {
-	if !p.IsSetSuccess() {
-		return IDLManagementCheckVersionResult_Success_DEFAULT
-	}
-	return *p.Success
-}
-func (p *IDLManagementCheckVersionResult) SetSuccess(x interface{}) {
-	p.Success = x.(*string)
-}
-
-var fieldIDToName_IDLManagementCheckVersionResult = map[int16]string{
-	0: "success",
-}
-
-func (p *IDLManagementCheckVersionResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *IDLManagementCheckVersionResult) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRING {
-				if err = p.ReadField0(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				if err = iprot.Skip(fieldTypeId); err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_IDLManagementCheckVersionResult[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *IDLManagementCheckVersionResult) ReadField0(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
-		return err
-	} else {
-		p.Success = &v
-	}
-	return nil
-}
-
-func (p *IDLManagementCheckVersionResult) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("CheckVersion_result"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField0(oprot); err != nil {
-			fieldId = 0
-			goto WriteFieldError
-		}
-
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *IDLManagementCheckVersionResult) writeField0(oprot thrift.TProtocol) (err error) {
-	if p.IsSetSuccess() {
-		if err = oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := oprot.WriteString(*p.Success); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
-}
-
-func (p *IDLManagementCheckVersionResult) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("IDLManagementCheckVersionResult(%+v)", *p)
-}
-
-func (p *IDLManagementCheckVersionResult) DeepEqual(ano *IDLManagementCheckVersionResult) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field0DeepEqual(ano.Success) {
-		return false
-	}
-	return true
-}
-
-func (p *IDLManagementCheckVersionResult) Field0DeepEqual(src *string) bool {
-
-	if p.Success == src {
-		return true
-	} else if p.Success == nil || src == nil {
-		return false
-	}
-	if strings.Compare(*p.Success, *src) != 0 {
-		return false
-	}
-	return true
-}
-
-type IDLManagementGetServiceThriftFileNameArgs struct {
-	ServiceName string `thrift:"serviceName,1" frugal:"1,default,string" json:"serviceName"`
-}
-
-func NewIDLManagementGetServiceThriftFileNameArgs() *IDLManagementGetServiceThriftFileNameArgs {
-	return &IDLManagementGetServiceThriftFileNameArgs{}
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) InitDefault() {
-	*p = IDLManagementGetServiceThriftFileNameArgs{}
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) GetServiceName() (v string) {
-	return p.ServiceName
-}
-func (p *IDLManagementGetServiceThriftFileNameArgs) SetServiceName(val string) {
-	p.ServiceName = val
-}
-
-var fieldIDToName_IDLManagementGetServiceThriftFileNameArgs = map[int16]string{
-	1: "serviceName",
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRING {
-				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				if err = iprot.Skip(fieldTypeId); err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_IDLManagementGetServiceThriftFileNameArgs[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) ReadField1(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
-		return err
-	} else {
-		p.ServiceName = v
-	}
-	return nil
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("GetServiceThriftFileName_args"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField1(oprot); err != nil {
-			fieldId = 1
-			goto WriteFieldError
-		}
-
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("serviceName", thrift.STRING, 1); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteString(p.ServiceName); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("IDLManagementGetServiceThriftFileNameArgs(%+v)", *p)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) DeepEqual(ano *IDLManagementGetServiceThriftFileNameArgs) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field1DeepEqual(ano.ServiceName) {
-		return false
-	}
-	return true
-}
-
-func (p *IDLManagementGetServiceThriftFileNameArgs) Field1DeepEqual(src string) bool {
-
-	if strings.Compare(p.ServiceName, src) != 0 {
-		return false
-	}
-	return true
-}
-
-type IDLManagementGetServiceThriftFileNameResult struct {
-	Success *string `thrift:"success,0,optional" frugal:"0,optional,string" json:"success,omitempty"`
-}
-
-func NewIDLManagementGetServiceThriftFileNameResult() *IDLManagementGetServiceThriftFileNameResult {
-	return &IDLManagementGetServiceThriftFileNameResult{}
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) InitDefault() {
-	*p = IDLManagementGetServiceThriftFileNameResult{}
-}
-
-var IDLManagementGetServiceThriftFileNameResult_Success_DEFAULT string
-
-func (p *IDLManagementGetServiceThriftFileNameResult) GetSuccess() (v string) {
-	if !p.IsSetSuccess() {
-		return IDLManagementGetServiceThriftFileNameResult_Success_DEFAULT
-	}
-	return *p.Success
-}
-func (p *IDLManagementGetServiceThriftFileNameResult) SetSuccess(x interface{}) {
-	p.Success = x.(*string)
-}
-
-var fieldIDToName_IDLManagementGetServiceThriftFileNameResult = map[int16]string{
-	0: "success",
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRING {
-				if err = p.ReadField0(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				if err = iprot.Skip(fieldTypeId); err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_IDLManagementGetServiceThriftFileNameResult[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) ReadField0(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
-		return err
-	} else {
-		p.Success = &v
-	}
-	return nil
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("GetServiceThriftFileName_result"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField0(oprot); err != nil {
-			fieldId = 0
-			goto WriteFieldError
-		}
-
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) writeField0(oprot thrift.TProtocol) (err error) {
-	if p.IsSetSuccess() {
-		if err = oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := oprot.WriteString(*p.Success); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("IDLManagementGetServiceThriftFileNameResult(%+v)", *p)
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) DeepEqual(ano *IDLManagementGetServiceThriftFileNameResult) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field0DeepEqual(ano.Success) {
-		return false
-	}
-	return true
-}
-
-func (p *IDLManagementGetServiceThriftFileNameResult) Field0DeepEqual(src *string) bool {
-
-	if p.Success == src {
-		return true
-	} else if p.Success == nil || src == nil {
-		return false
-	}
-	if strings.Compare(*p.Success, *src) != 0 {
-		return false
-	}
-	return true
-}
-
 type IDLManagementGetThriftFileArgs struct {
-	ServiceName string `thrift:"serviceName,1" frugal:"1,default,string" json:"serviceName"`
+	ServiceName    string `thrift:"serviceName,1" frugal:"1,default,string" json:"serviceName"`
+	ServiceVersion string `thrift:"serviceVersion,2" frugal:"2,default,string" json:"serviceVersion"`
 }
 
 func NewIDLManagementGetThriftFileArgs() *IDLManagementGetThriftFileArgs {
@@ -890,12 +155,20 @@ func (p *IDLManagementGetThriftFileArgs) InitDefault() {
 func (p *IDLManagementGetThriftFileArgs) GetServiceName() (v string) {
 	return p.ServiceName
 }
+
+func (p *IDLManagementGetThriftFileArgs) GetServiceVersion() (v string) {
+	return p.ServiceVersion
+}
 func (p *IDLManagementGetThriftFileArgs) SetServiceName(val string) {
 	p.ServiceName = val
+}
+func (p *IDLManagementGetThriftFileArgs) SetServiceVersion(val string) {
+	p.ServiceVersion = val
 }
 
 var fieldIDToName_IDLManagementGetThriftFileArgs = map[int16]string{
 	1: "serviceName",
+	2: "serviceVersion",
 }
 
 func (p *IDLManagementGetThriftFileArgs) Read(iprot thrift.TProtocol) (err error) {
@@ -920,6 +193,16 @@ func (p *IDLManagementGetThriftFileArgs) Read(iprot thrift.TProtocol) (err error
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else {
@@ -966,6 +249,15 @@ func (p *IDLManagementGetThriftFileArgs) ReadField1(iprot thrift.TProtocol) erro
 	return nil
 }
 
+func (p *IDLManagementGetThriftFileArgs) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.ServiceVersion = v
+	}
+	return nil
+}
+
 func (p *IDLManagementGetThriftFileArgs) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
 	if err = oprot.WriteStructBegin("GetThriftFile_args"); err != nil {
@@ -974,6 +266,10 @@ func (p *IDLManagementGetThriftFileArgs) Write(oprot thrift.TProtocol) (err erro
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 
@@ -1012,6 +308,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
+func (p *IDLManagementGetThriftFileArgs) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("serviceVersion", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ServiceVersion); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
 func (p *IDLManagementGetThriftFileArgs) String() string {
 	if p == nil {
 		return "<nil>"
@@ -1028,12 +341,22 @@ func (p *IDLManagementGetThriftFileArgs) DeepEqual(ano *IDLManagementGetThriftFi
 	if !p.Field1DeepEqual(ano.ServiceName) {
 		return false
 	}
+	if !p.Field2DeepEqual(ano.ServiceVersion) {
+		return false
+	}
 	return true
 }
 
 func (p *IDLManagementGetThriftFileArgs) Field1DeepEqual(src string) bool {
 
 	if strings.Compare(p.ServiceName, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *IDLManagementGetThriftFileArgs) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.ServiceVersion, src) != 0 {
 		return false
 	}
 	return true

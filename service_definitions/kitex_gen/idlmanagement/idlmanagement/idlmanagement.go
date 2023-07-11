@@ -19,9 +19,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "IDLManagement"
 	handlerType := (*idlmanagement.IDLManagement)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"CheckVersion":             kitex.NewMethodInfo(checkVersionHandler, newIDLManagementCheckVersionArgs, newIDLManagementCheckVersionResult, false),
-		"GetServiceThriftFileName": kitex.NewMethodInfo(getServiceThriftFileNameHandler, newIDLManagementGetServiceThriftFileNameArgs, newIDLManagementGetServiceThriftFileNameResult, false),
-		"GetThriftFile":            kitex.NewMethodInfo(getThriftFileHandler, newIDLManagementGetThriftFileArgs, newIDLManagementGetThriftFileResult, false),
+		"GetThriftFile": kitex.NewMethodInfo(getThriftFileHandler, newIDLManagementGetThriftFileArgs, newIDLManagementGetThriftFileResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "idlmanagement",
@@ -37,46 +35,10 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	return svcInfo
 }
 
-func checkVersionHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-
-	realResult := result.(*idlmanagement.IDLManagementCheckVersionResult)
-	success, err := handler.(idlmanagement.IDLManagement).CheckVersion(ctx)
-	if err != nil {
-		return err
-	}
-	realResult.Success = &success
-	return nil
-}
-func newIDLManagementCheckVersionArgs() interface{} {
-	return idlmanagement.NewIDLManagementCheckVersionArgs()
-}
-
-func newIDLManagementCheckVersionResult() interface{} {
-	return idlmanagement.NewIDLManagementCheckVersionResult()
-}
-
-func getServiceThriftFileNameHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*idlmanagement.IDLManagementGetServiceThriftFileNameArgs)
-	realResult := result.(*idlmanagement.IDLManagementGetServiceThriftFileNameResult)
-	success, err := handler.(idlmanagement.IDLManagement).GetServiceThriftFileName(ctx, realArg.ServiceName)
-	if err != nil {
-		return err
-	}
-	realResult.Success = &success
-	return nil
-}
-func newIDLManagementGetServiceThriftFileNameArgs() interface{} {
-	return idlmanagement.NewIDLManagementGetServiceThriftFileNameArgs()
-}
-
-func newIDLManagementGetServiceThriftFileNameResult() interface{} {
-	return idlmanagement.NewIDLManagementGetServiceThriftFileNameResult()
-}
-
 func getThriftFileHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*idlmanagement.IDLManagementGetThriftFileArgs)
 	realResult := result.(*idlmanagement.IDLManagementGetThriftFileResult)
-	success, err := handler.(idlmanagement.IDLManagement).GetThriftFile(ctx, realArg.ServiceName)
+	success, err := handler.(idlmanagement.IDLManagement).GetThriftFile(ctx, realArg.ServiceName, realArg.ServiceVersion)
 	if err != nil {
 		return err
 	}
@@ -101,28 +63,10 @@ func newServiceClient(c client.Client) *kClient {
 	}
 }
 
-func (p *kClient) CheckVersion(ctx context.Context) (r string, err error) {
-	var _args idlmanagement.IDLManagementCheckVersionArgs
-	var _result idlmanagement.IDLManagementCheckVersionResult
-	if err = p.c.Call(ctx, "CheckVersion", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) GetServiceThriftFileName(ctx context.Context, serviceName string) (r string, err error) {
-	var _args idlmanagement.IDLManagementGetServiceThriftFileNameArgs
-	_args.ServiceName = serviceName
-	var _result idlmanagement.IDLManagementGetServiceThriftFileNameResult
-	if err = p.c.Call(ctx, "GetServiceThriftFileName", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) GetThriftFile(ctx context.Context, serviceName string) (r string, err error) {
+func (p *kClient) GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (r string, err error) {
 	var _args idlmanagement.IDLManagementGetThriftFileArgs
 	_args.ServiceName = serviceName
+	_args.ServiceVersion = serviceVersion
 	var _result idlmanagement.IDLManagementGetThriftFileResult
 	if err = p.c.Call(ctx, "GetThriftFile", &_args, &_result); err != nil {
 		return

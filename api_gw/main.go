@@ -30,7 +30,7 @@ func addThriftFile(serviceName string, serviceVersion string, serviceMap map[str
 		hlog.Error("Problem creating new thrift file: " + thriftFileName)
 		panic(err)
 	}
-	content, err := idlmClient.GetThriftFile(context.Background(), serviceName)
+	content, err := idlmClient.GetThriftFile(context.Background(), serviceName, serviceVersion)
 	if err != nil {
 		hlog.Error("Problem getting thrift file")
 		panic(err)
@@ -68,7 +68,7 @@ func main() {
 			{
 				"versionNumber1" : "thriftFileName1",
 				"versionNumber2" : "thriftFileName2"
-			}
+			},
 			"serviceName2" :
 			{
 				"versionNumber1" : "thriftFileName3"
@@ -80,7 +80,7 @@ func main() {
 
 	// TODO: add basicauth to this post request path, to prevent malicious attacks on the API Gateway
 
-	h.POST("/idlmanagement/start", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
+	h.POST("/idlmanagement/update", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
 		serviceMap = make(map[string]map[string]string)         // reallocate serviceMap to clear all entries
 		err = jsoniter.Unmarshal(ctx.GetRawData(), &serviceMap) // receive the new serviceMap from IDL management service in JSON body
 		if err != nil {
@@ -108,67 +108,12 @@ func main() {
 		ctx.JSON(consts.StatusOK, &serviceMap)
 	})
 
-	h.GET("/idlmanagement/:service/:version/:change", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
-		// update the individual service that was updated during the runtime of IDL management service
-		serviceName := ctx.Param("service")
-		serviceVersion := ctx.Param("version")
-		change := ctx.Param("change")
-
-		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
-		if err != nil {
-			ctx.JSON(consts.StatusInternalServerError, err.Error())
-			return
-		}
-
-		switch change {
-		case "write":
-			err = addThriftFile(serviceName, serviceVersion, serviceMap, idlmClient)
-			if err != nil {
-				hlog.Error("Problem modifying thrift file: " + serviceName + " " + serviceVersion)
-				panic(err)
-			}
-		case "remove":
-			os.Remove("./thrift_files/" + serviceMap[serviceName][serviceVersion])
-			delete(serviceMap[serviceName], serviceVersion)
-			log.Println("Thrift file removed: " + serviceName + " " + serviceVersion)
-		case "create":
-			err = addThriftFile(serviceName, serviceVersion, serviceMap, idlmClient)
-			if err != nil {
-				hlog.Error("Problem creating thrift file: " + serviceName + " " + serviceVersion)
-				panic(err)
-			}
-		}
-		log.Println("Updated service")
-		ctx.JSON(consts.StatusOK, "")
-	})
-
 	h.POST("/:service/:version/:method", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
 		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
 		serviceVersion := ctx.Param("version")
 		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
 
-		// check version number with IDL management service
-
-		// if there is a version update on the idlmanagement service, overwrite existing files / download new files
-		// if service is not found in the local map, download it
-		// if service is not found on the idlmanagement service, throw an error
-		// if service is found, set the thriftFileDir
-		if versionNumber != idlmVersionNumber || serviceMap[serviceName] == "" {
-			serviceMap[serviceName], err = addThriftFile(serviceName, idlmClient)
-			if serviceMap[serviceName] == "" {
-				hlog.Error("Problem adding thrift file")
-				ctx.JSON(consts.StatusBadRequest, err.Error())
-				return
-			}
-			if err != nil {
-				hlog.Error("Problem adding thrift file")
-				ctx.JSON(consts.StatusBadRequest, err.Error())
-				return
-			}
-			versionNumber = idlmVersionNumber
-		}
-
-		thriftFileDir := "./thrift_files/" + serviceMap[serviceName]
+		thriftFileDir := "./thrift_files/" + serviceMap[serviceName][serviceVersion]
 
 		// Process RPC Call
 

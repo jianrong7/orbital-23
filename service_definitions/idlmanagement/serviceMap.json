@@ -1,0 +1,11 @@
+{
+    "service1" :
+    {
+        "v1" : "service1v1.thrift",
+        "v2" : "service1v2.thrift"
+    },
+    "service2" :
+    {
+        "v1" : "service2v1.thrift"
+    }
+}

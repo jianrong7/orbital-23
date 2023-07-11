@@ -10,9 +10,7 @@ import (
 
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
-	CheckVersion(ctx context.Context, callOptions ...callopt.Option) (r string, err error)
-	GetServiceThriftFileName(ctx context.Context, serviceName string, callOptions ...callopt.Option) (r string, err error)
-	GetThriftFile(ctx context.Context, serviceName string, callOptions ...callopt.Option) (r string, err error)
+	GetThriftFile(ctx context.Context, serviceName string, serviceVersion string, callOptions ...callopt.Option) (r string, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -44,17 +42,7 @@ type kIDLManagementClient struct {
 	*kClient
 }
 
-func (p *kIDLManagementClient) CheckVersion(ctx context.Context, callOptions ...callopt.Option) (r string, err error) {
+func (p *kIDLManagementClient) GetThriftFile(ctx context.Context, serviceName string, serviceVersion string, callOptions ...callopt.Option) (r string, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.CheckVersion(ctx)
-}
-
-func (p *kIDLManagementClient) GetServiceThriftFileName(ctx context.Context, serviceName string, callOptions ...callopt.Option) (r string, err error) {
-	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.GetServiceThriftFileName(ctx, serviceName)
-}
-
-func (p *kIDLManagementClient) GetThriftFile(ctx context.Context, serviceName string, callOptions ...callopt.Option) (r string, err error) {
-	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.GetThriftFile(ctx, serviceName)
+	return p.kClient.GetThriftFile(ctx, serviceName, serviceVersion)
 }
