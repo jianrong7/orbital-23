@@ -29,24 +29,8 @@ func updateAPIGateway(content []byte) {
 var serviceMap = make(map[string]map[string]string)
 
 func main() {
-	// read in the new service mapping from the serviceMap.json file, reallocating a new map
-	serviceMap = make(map[string]map[string]string)
-	content, err := os.ReadFile("serviceMap.json")
-	if err != nil {
-		log.Println("Problem reading serverConfig.json")
-		panic(err)
-	}
-
-	err = jsoniter.Unmarshal(content, &serviceMap)
-	if err != nil {
-		log.Println("Problem unmarshalling config")
-		panic(err)
-	}
-
 	// update the API Gateway that the IDL Management service has changes with HTTP Get request
 	// API Gateway will call the relevant functions to update itself with RPC
-
-	updateAPIGateway(content)
 
 	r, err := consul.NewConsulRegister("127.0.0.1:8500")
 	if err != nil {
@@ -65,42 +49,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// watcher, err := fsnotify.NewWatcher()
+	// // read in the new service mapping from the serviceMap.json file, reallocating a new map
+	// serviceMap = make(map[string]map[string]string)
+	// content, err := os.ReadFile("serviceMap.json")
 	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer watcher.Close()
-
-	// // Start listening for events.
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case event, ok := <-watcher.Events:
-	// 			if !ok {
-	// 				return
-	// 			}
-	// 			log.Println("event:", event)
-	// 			if event.Name == "./serviceMap.json" {
-	// 				// update the API Gateway via HTTP POST request
-	// 				updateAPIGateway(content)
-	// 			}
-	// 		case err, ok := <-watcher.Errors:
-	// 			if !ok {
-	// 				return
-	// 			}
-	// 			log.Println("error:", err)
-	// 		}
-	// 	}
-	// }()
-
-	// // Add a path.
-	// err = watcher.Add("./")
-	// if err != nil {
-	// 	log.Fatal(err)
+	// 	log.Println("Problem reading serverConfig.json")
+	// 	panic(err)
 	// }
 
-	// // Block main goroutine forever.
-	// <-make(chan struct{})
+	// err = jsoniter.Unmarshal(content, &serviceMap)
+	// if err != nil {
+	// 	log.Println("Problem unmarshalling config")
+	// 	panic(err)
+	// }
+
+	// updateAPIGateway(content)
 }
 
 type IDLManagementImpl struct{}
@@ -117,3 +80,40 @@ func (s *IDLManagementImpl) GetThriftFile(ctx context.Context, fileName string) 
 	}
 	return string(content), err
 }
+
+// watcher, err := fsnotify.NewWatcher()
+// if err != nil {
+// 	log.Fatal(err)
+// }
+// defer watcher.Close()
+
+// // Start listening for events.
+// go func() {
+// 	for {
+// 		select {
+// 		case event, ok := <-watcher.Events:
+// 			if !ok {
+// 				return
+// 			}
+// 			log.Println("event:", event)
+// 			if event.Name == "./serviceMap.json" {
+// 				// update the API Gateway via HTTP POST request
+// 				updateAPIGateway(content)
+// 			}
+// 		case err, ok := <-watcher.Errors:
+// 			if !ok {
+// 				return
+// 			}
+// 			log.Println("error:", err)
+// 		}
+// 	}
+// }()
+
+// // Add a path.
+// err = watcher.Add("./")
+// if err != nil {
+// 	log.Fatal(err)
+// }
+
+// // Block main goroutine forever.
+// <-make(chan struct{})
