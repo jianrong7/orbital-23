@@ -23,26 +23,26 @@ import (
 	"golang.org/x/text/language"
 )
 
-func addThriftFile(serviceName string, serviceVersion string, serviceMap map[string]map[string]string, idlmClient idlm.Client) (err error) {
-	thriftFileName := serviceMap[serviceName][serviceVersion]
-	file, err := os.Create("./thrift_files/" + thriftFileName)
-	if err != nil {
-		hlog.Error("Problem creating new thrift file: " + thriftFileName)
-		panic(err)
-	}
-	content, err := idlmClient.GetThriftFile(context.Background(), serviceName, serviceVersion)
-	if err != nil {
-		hlog.Error("Problem getting thrift file")
-		panic(err)
-	}
-	size, err := file.WriteString(content)
-	defer file.Close()
-	log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
-	return err
-}
+// func addThriftFile(serviceName string, serviceVersion string, serviceMap map[string]map[string]string, idlmClient idlm.Client) (err error) {
+// 	thriftFileName := serviceMap[serviceName][serviceVersion]
+// 	file, err := os.Create("./thrift_files/" + thriftFileName)
+// 	if err != nil {
+// 		hlog.Error("Problem creating new thrift file: " + thriftFileName)
+// 		panic(err)
+// 	}
+// 	content, err := idlmClient.GetThriftFile(context.Background(), serviceName, serviceVersion)
+// 	if err != nil {
+// 		hlog.Error("Problem getting thrift file")
+// 		panic(err)
+// 	}
+// 	size, err := file.WriteString(content)
+// 	defer file.Close()
+// 	log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
+// 	return err
+// }
 
 func main() {
-	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
+	h := server.Default(server.WithHostPorts("127.0.0.1:8888"))
 	h.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"*"},
@@ -87,6 +87,7 @@ func main() {
 			hlog.Error("Problem unmarshalling serviceMap")
 			panic(err)
 		}
+		log.Println(serviceMap)
 
 		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
 		if err != nil {
@@ -95,8 +96,23 @@ func main() {
 		}
 
 		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using RPC
-			for serviceVersion, _ := range innerMap {
-				err = addThriftFile(serviceName, serviceVersion, serviceMap, idlmClient)
+			for serviceVersion, thriftFileName := range innerMap {
+				log.Println("serviceName: " + serviceName)
+				log.Println("serviceVersion: " + serviceVersion)
+				log.Println("thriftFileName: " + thriftFileName)
+				file, err := os.Create("./thrift_files/" + thriftFileName)
+				if err != nil {
+					hlog.Error("Problem creating new thrift file: " + thriftFileName)
+					panic(err)
+				}
+				content, err := idlmClient.GetThriftFile(context.Background(), thriftFileName)
+				if err != nil {
+					hlog.Error("Problem getting thrift file")
+					panic(err)
+				}
+				size, err := file.WriteString(content)
+				defer file.Close()
+				log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
 				if err != nil {
 					hlog.Error("Problem adding thrift file: " + serviceName + " " + serviceVersion)
 					panic(err)

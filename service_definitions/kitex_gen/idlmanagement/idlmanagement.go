@@ -10,7 +10,7 @@ import (
 )
 
 type IDLManagement interface {
-	GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (r string, err error)
+	GetThriftFile(ctx context.Context, fileName string) (r string, err error)
 }
 
 type IDLManagementClient struct {
@@ -39,10 +39,9 @@ func (p *IDLManagementClient) Client_() thrift.TClient {
 	return p.c
 }
 
-func (p *IDLManagementClient) GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (r string, err error) {
+func (p *IDLManagementClient) GetThriftFile(ctx context.Context, fileName string) (r string, err error) {
 	var _args IDLManagementGetThriftFileArgs
-	_args.ServiceName = serviceName
-	_args.ServiceVersion = serviceVersion
+	_args.FileName = fileName
 	var _result IDLManagementGetThriftFileResult
 	if err = p.Client_().Call(ctx, "GetThriftFile", &_args, &_result); err != nil {
 		return
@@ -111,7 +110,7 @@ func (p *iDLManagementProcessorGetThriftFile) Process(ctx context.Context, seqId
 	var err2 error
 	result := IDLManagementGetThriftFileResult{}
 	var retval string
-	if retval, err2 = p.handler.GetThriftFile(ctx, args.ServiceName, args.ServiceVersion); err2 != nil {
+	if retval, err2 = p.handler.GetThriftFile(ctx, args.FileName); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetThriftFile: "+err2.Error())
 		oprot.WriteMessageBegin("GetThriftFile", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
@@ -140,8 +139,7 @@ func (p *iDLManagementProcessorGetThriftFile) Process(ctx context.Context, seqId
 }
 
 type IDLManagementGetThriftFileArgs struct {
-	ServiceName    string `thrift:"serviceName,1" frugal:"1,default,string" json:"serviceName"`
-	ServiceVersion string `thrift:"serviceVersion,2" frugal:"2,default,string" json:"serviceVersion"`
+	FileName string `thrift:"fileName,1" frugal:"1,default,string" json:"fileName"`
 }
 
 func NewIDLManagementGetThriftFileArgs() *IDLManagementGetThriftFileArgs {
@@ -152,23 +150,15 @@ func (p *IDLManagementGetThriftFileArgs) InitDefault() {
 	*p = IDLManagementGetThriftFileArgs{}
 }
 
-func (p *IDLManagementGetThriftFileArgs) GetServiceName() (v string) {
-	return p.ServiceName
+func (p *IDLManagementGetThriftFileArgs) GetFileName() (v string) {
+	return p.FileName
 }
-
-func (p *IDLManagementGetThriftFileArgs) GetServiceVersion() (v string) {
-	return p.ServiceVersion
-}
-func (p *IDLManagementGetThriftFileArgs) SetServiceName(val string) {
-	p.ServiceName = val
-}
-func (p *IDLManagementGetThriftFileArgs) SetServiceVersion(val string) {
-	p.ServiceVersion = val
+func (p *IDLManagementGetThriftFileArgs) SetFileName(val string) {
+	p.FileName = val
 }
 
 var fieldIDToName_IDLManagementGetThriftFileArgs = map[int16]string{
-	1: "serviceName",
-	2: "serviceVersion",
+	1: "fileName",
 }
 
 func (p *IDLManagementGetThriftFileArgs) Read(iprot thrift.TProtocol) (err error) {
@@ -193,16 +183,6 @@ func (p *IDLManagementGetThriftFileArgs) Read(iprot thrift.TProtocol) (err error
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				if err = iprot.Skip(fieldTypeId); err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 2:
-			if fieldTypeId == thrift.STRING {
-				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else {
@@ -244,16 +224,7 @@ func (p *IDLManagementGetThriftFileArgs) ReadField1(iprot thrift.TProtocol) erro
 	if v, err := iprot.ReadString(); err != nil {
 		return err
 	} else {
-		p.ServiceName = v
-	}
-	return nil
-}
-
-func (p *IDLManagementGetThriftFileArgs) ReadField2(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
-		return err
-	} else {
-		p.ServiceVersion = v
+		p.FileName = v
 	}
 	return nil
 }
@@ -266,10 +237,6 @@ func (p *IDLManagementGetThriftFileArgs) Write(oprot thrift.TProtocol) (err erro
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
-			goto WriteFieldError
-		}
-		if err = p.writeField2(oprot); err != nil {
-			fieldId = 2
 			goto WriteFieldError
 		}
 
@@ -292,10 +259,10 @@ WriteStructEndError:
 }
 
 func (p *IDLManagementGetThriftFileArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("serviceName", thrift.STRING, 1); err != nil {
+	if err = oprot.WriteFieldBegin("fileName", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.ServiceName); err != nil {
+	if err := oprot.WriteString(p.FileName); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -306,23 +273,6 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *IDLManagementGetThriftFileArgs) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("serviceVersion", thrift.STRING, 2); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteString(p.ServiceVersion); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
 func (p *IDLManagementGetThriftFileArgs) String() string {
@@ -338,10 +288,7 @@ func (p *IDLManagementGetThriftFileArgs) DeepEqual(ano *IDLManagementGetThriftFi
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.ServiceName) {
-		return false
-	}
-	if !p.Field2DeepEqual(ano.ServiceVersion) {
+	if !p.Field1DeepEqual(ano.FileName) {
 		return false
 	}
 	return true
@@ -349,14 +296,7 @@ func (p *IDLManagementGetThriftFileArgs) DeepEqual(ano *IDLManagementGetThriftFi
 
 func (p *IDLManagementGetThriftFileArgs) Field1DeepEqual(src string) bool {
 
-	if strings.Compare(p.ServiceName, src) != 0 {
-		return false
-	}
-	return true
-}
-func (p *IDLManagementGetThriftFileArgs) Field2DeepEqual(src string) bool {
-
-	if strings.Compare(p.ServiceVersion, src) != 0 {
+	if strings.Compare(p.FileName, src) != 0 {
 		return false
 	}
 	return true

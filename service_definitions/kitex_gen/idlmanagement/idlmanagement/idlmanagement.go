@@ -38,7 +38,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 func getThriftFileHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*idlmanagement.IDLManagementGetThriftFileArgs)
 	realResult := result.(*idlmanagement.IDLManagementGetThriftFileResult)
-	success, err := handler.(idlmanagement.IDLManagement).GetThriftFile(ctx, realArg.ServiceName, realArg.ServiceVersion)
+	success, err := handler.(idlmanagement.IDLManagement).GetThriftFile(ctx, realArg.FileName)
 	if err != nil {
 		return err
 	}
@@ -63,10 +63,9 @@ func newServiceClient(c client.Client) *kClient {
 	}
 }
 
-func (p *kClient) GetThriftFile(ctx context.Context, serviceName string, serviceVersion string) (r string, err error) {
+func (p *kClient) GetThriftFile(ctx context.Context, fileName string) (r string, err error) {
 	var _args idlmanagement.IDLManagementGetThriftFileArgs
-	_args.ServiceName = serviceName
-	_args.ServiceVersion = serviceVersion
+	_args.FileName = fileName
 	var _result idlmanagement.IDLManagementGetThriftFileResult
 	if err = p.c.Call(ctx, "GetThriftFile", &_args, &_result); err != nil {
 		return

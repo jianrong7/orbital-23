@@ -59,20 +59,6 @@ func (p *IDLManagementGetThriftFileArgs) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 2:
-			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField2(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = bthrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
 		default:
 			l, err = bthrift.Binary.Skip(buf[offset:], fieldTypeId)
 			offset += l
@@ -116,21 +102,7 @@ func (p *IDLManagementGetThriftFileArgs) FastReadField1(buf []byte) (int, error)
 	} else {
 		offset += l
 
-		p.ServiceName = v
-
-	}
-	return offset, nil
-}
-
-func (p *IDLManagementGetThriftFileArgs) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	if v, l, err := bthrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-
-		p.ServiceVersion = v
+		p.FileName = v
 
 	}
 	return offset, nil
@@ -146,7 +118,6 @@ func (p *IDLManagementGetThriftFileArgs) FastWriteNocopy(buf []byte, binaryWrite
 	offset += bthrift.Binary.WriteStructBegin(buf[offset:], "GetThriftFile_args")
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], binaryWriter)
-		offset += p.fastWriteField2(buf[offset:], binaryWriter)
 	}
 	offset += bthrift.Binary.WriteFieldStop(buf[offset:])
 	offset += bthrift.Binary.WriteStructEnd(buf[offset:])
@@ -158,7 +129,6 @@ func (p *IDLManagementGetThriftFileArgs) BLength() int {
 	l += bthrift.Binary.StructBeginLength("GetThriftFile_args")
 	if p != nil {
 		l += p.field1Length()
-		l += p.field2Length()
 	}
 	l += bthrift.Binary.FieldStopLength()
 	l += bthrift.Binary.StructEndLength()
@@ -167,17 +137,8 @@ func (p *IDLManagementGetThriftFileArgs) BLength() int {
 
 func (p *IDLManagementGetThriftFileArgs) fastWriteField1(buf []byte, binaryWriter bthrift.BinaryWriter) int {
 	offset := 0
-	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "serviceName", thrift.STRING, 1)
-	offset += bthrift.Binary.WriteStringNocopy(buf[offset:], binaryWriter, p.ServiceName)
-
-	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
-	return offset
-}
-
-func (p *IDLManagementGetThriftFileArgs) fastWriteField2(buf []byte, binaryWriter bthrift.BinaryWriter) int {
-	offset := 0
-	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "serviceVersion", thrift.STRING, 2)
-	offset += bthrift.Binary.WriteStringNocopy(buf[offset:], binaryWriter, p.ServiceVersion)
+	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "fileName", thrift.STRING, 1)
+	offset += bthrift.Binary.WriteStringNocopy(buf[offset:], binaryWriter, p.FileName)
 
 	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
 	return offset
@@ -185,17 +146,8 @@ func (p *IDLManagementGetThriftFileArgs) fastWriteField2(buf []byte, binaryWrite
 
 func (p *IDLManagementGetThriftFileArgs) field1Length() int {
 	l := 0
-	l += bthrift.Binary.FieldBeginLength("serviceName", thrift.STRING, 1)
-	l += bthrift.Binary.StringLengthNocopy(p.ServiceName)
-
-	l += bthrift.Binary.FieldEndLength()
-	return l
-}
-
-func (p *IDLManagementGetThriftFileArgs) field2Length() int {
-	l := 0
-	l += bthrift.Binary.FieldBeginLength("serviceVersion", thrift.STRING, 2)
-	l += bthrift.Binary.StringLengthNocopy(p.ServiceVersion)
+	l += bthrift.Binary.FieldBeginLength("fileName", thrift.STRING, 1)
+	l += bthrift.Binary.StringLengthNocopy(p.FileName)
 
 	l += bthrift.Binary.FieldEndLength()
 	return l
@@ -335,7 +287,7 @@ func (p *IDLManagementGetThriftFileResult) field0Length() int {
 }
 
 func (p *IDLManagementGetThriftFileArgs) GetFirstArgument() interface{} {
-	return p.ServiceName
+	return p.FileName
 }
 
 func (p *IDLManagementGetThriftFileResult) GetResult() interface{} {
