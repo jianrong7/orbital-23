@@ -45,6 +45,7 @@ require (
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/henrylee2cn/ameda v1.4.10 // indirect
 	github.com/henrylee2cn/goutil v0.0.0-20210127050712-89660552f6f8 // indirect
+	github.com/hertz-contrib/registry/consul v0.0.0-20230619070437-fa188fde6805
 	github.com/jhump/protoreflect v1.8.2 // indirect
 	github.com/kitex-contrib/registry-consul v0.0.0-20230406075225-7d341f036654
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect

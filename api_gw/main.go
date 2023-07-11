@@ -6,40 +6,24 @@ import (
 	"os"
 	"time"
 
-	idlm "api_gw/service_definitions/kitex_gen/idlmanagement/idlmanagement"
-
 	"github.com/cloudwego/hertz/pkg/app"
+	hclient "github.com/cloudwego/hertz/pkg/app/client"
+	"github.com/cloudwego/hertz/pkg/app/middlewares/client/sd"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
-	"github.com/cloudwego/kitex/client"
+	kclient "github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/client/genericclient"
 	"github.com/cloudwego/kitex/pkg/generic"
+	consulapi "github.com/hashicorp/consul/api"
 	"github.com/hertz-contrib/cors"
 	hertzZerolog "github.com/hertz-contrib/logger/zerolog"
+	hconsul "github.com/hertz-contrib/registry/consul"
 	jsoniter "github.com/json-iterator/go"
-	consul "github.com/kitex-contrib/registry-consul"
+	kconsul "github.com/kitex-contrib/registry-consul"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
-// func addThriftFile(serviceName string, serviceVersion string, serviceMap map[string]map[string]string, idlmClient idlm.Client) (err error) {
-// 	thriftFileName := serviceMap[serviceName][serviceVersion]
-// 	file, err := os.Create("./thrift_files/" + thriftFileName)
-// 	if err != nil {
-// 		hlog.Error("Problem creating new thrift file: " + thriftFileName)
-// 		panic(err)
-// 	}
-// 	content, err := idlmClient.GetThriftFile(context.Background(), serviceName, serviceVersion)
-// 	if err != nil {
-// 		hlog.Error("Problem getting thrift file")
-// 		panic(err)
-// 	}
-// 	size, err := file.WriteString(content)
-// 	defer file.Close()
-// 	log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
-// 	return err
-// }
 
 func main() {
 	h := server.Default(server.WithHostPorts("127.0.0.1:8888"))
@@ -51,9 +35,9 @@ func main() {
 	}))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := consul.NewConsulResolver("127.0.0.1:8500")
+	r, err := kconsul.NewConsulResolver("127.0.0.1:8500")
 	if err != nil {
-		hlog.Error("Problem adding Consul Resolver")
+		hlog.Error("Problem adding Consul Resolver (Kitex)")
 		panic(err)
 	}
 
@@ -87,30 +71,48 @@ func main() {
 			hlog.Error("Problem unmarshalling serviceMap")
 			panic(err)
 		}
-		log.Println(serviceMap)
 
-		idlmClient, err := idlm.NewClient("idlmanagement", client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
+		// build a consul client
+		consulConfig := consulapi.DefaultConfig()
+		consulConfig.Address = "127.0.0.1:8500"
+		consulClient, err := consulapi.NewClient(consulConfig)
 		if err != nil {
-			ctx.JSON(consts.StatusInternalServerError, err.Error())
+			log.Fatal(err)
 			return
 		}
+		// build a consul resolver with the consul client
+		r := hconsul.NewConsulResolver(consulClient)
+
+		// build a hertz client with the consul resolver
+		cli, err := hclient.NewClient()
+		if err != nil {
+			panic(err)
+		}
+		cli.Use(sd.Discovery(r))
 
 		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using RPC
 			for serviceVersion, thriftFileName := range innerMap {
-				log.Println("serviceName: " + serviceName)
-				log.Println("serviceVersion: " + serviceVersion)
-				log.Println("thriftFileName: " + thriftFileName)
+				log.Println(serviceName + " " + serviceVersion + " " + thriftFileName)
 				file, err := os.Create("./thrift_files/" + thriftFileName)
 				if err != nil {
 					hlog.Error("Problem creating new thrift file: " + thriftFileName)
 					panic(err)
 				}
-				content, err := idlmClient.GetThriftFile(context.Background(), thriftFileName)
+				address := "http://127.0.0.1:9999/getthriftfile/" + thriftFileName
+				log.Println(address)
+				var content []byte
+				status, urlbody, err := cli.Get(context.Background(), content, address) //, config.WithSD(true)
+				log.Println(urlbody)
+				log.Println(content)
+				log.Printf("Status: %d \n", status)
+				if err != nil {
+					hlog.Error(err)
+				}
 				if err != nil {
 					hlog.Error("Problem getting thrift file")
 					panic(err)
 				}
-				size, err := file.WriteString(content)
+				size, err := file.Write(urlbody)
 				defer file.Close()
 				log.Printf("Downloaded a file %s with size %d", thriftFileName, size)
 				if err != nil {
@@ -147,7 +149,7 @@ func main() {
 			return
 		}
 
-		rpcClient, err := genericclient.NewClient(serviceName, g, client.WithResolver(r), client.WithRPCTimeout(time.Second*3))
+		rpcClient, err := genericclient.NewClient(serviceName, g, kclient.WithResolver(r), kclient.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			hlog.Error("Problem creating new generic client")
 			ctx.JSON(consts.StatusInternalServerError, err.Error())
