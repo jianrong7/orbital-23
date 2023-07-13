@@ -102,8 +102,8 @@ func main() {
 				log.Println(address)
 				var content []byte
 				status, urlbody, err := cli.Get(context.Background(), content, address) //, config.WithSD(true)
-				log.Println(urlbody)
-				log.Println(content)
+				// log.Println(urlbody)
+				// log.Println(content)
 				log.Printf("Status: %d \n", status)
 				if err != nil {
 					hlog.Error(err)
