@@ -10,6 +10,7 @@ import (
 	hclient "github.com/cloudwego/hertz/pkg/app/client"
 	"github.com/cloudwego/hertz/pkg/app/middlewares/client/sd"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/config"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	kclient "github.com/cloudwego/kitex/client"
@@ -63,7 +64,6 @@ func main() {
 	*/
 
 	// TODO: add basicauth to this post request path, to prevent malicious attacks on the API Gateway
-
 	h.POST("/idlmanagement/update", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
 		serviceMap = make(map[string]map[string]string)         // reallocate serviceMap to clear all entries
 		err = jsoniter.Unmarshal(ctx.GetRawData(), &serviceMap) // receive the new serviceMap from IDL management service in JSON body
@@ -83,7 +83,7 @@ func main() {
 		// build a consul resolver with the consul client
 		hr := hconsul.NewConsulResolver(consulClient)
 
-		// build a hertz client with the consul resolver
+		// // build a hertz client with the consul resolver
 		cli, err := hclient.NewClient()
 		if err != nil {
 			panic(err)
@@ -92,16 +92,14 @@ func main() {
 
 		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using RPC
 			for serviceVersion, thriftFileName := range innerMap {
-				log.Println(serviceName + " " + serviceVersion + " " + thriftFileName)
 				file, err := os.Create("./thrift_files/" + thriftFileName)
 				if err != nil {
 					hlog.Error("Problem creating new thrift file: " + thriftFileName)
 					panic(err)
 				}
-				address := "http://127.0.0.1:9999/getthriftfile/" + thriftFileName
-				log.Println(address)
+				address := "http://idlmanagement/getthriftfile/" + thriftFileName
 				var content []byte
-				status, urlbody, err := cli.Get(context.Background(), content, address) //, config.WithSD(true)
+				status, urlbody, err := cli.Get(context.Background(), content, address, config.WithSD(true))
 				// log.Println(urlbody)
 				// log.Println(content)
 				log.Printf("Status: %d \n", status)
@@ -149,7 +147,7 @@ func main() {
 			return
 		}
 
-		rpcClient, err := genericclient.NewClient(serviceName, g, kclient.WithResolver(r), kclient.WithRPCTimeout(time.Second*3))
+		rpcClient, err := genericclient.NewClient(serviceName+serviceVersion, g, kclient.WithResolver(r), kclient.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			hlog.Error("Problem creating new generic client")
 			ctx.JSON(consts.StatusInternalServerError, err.Error())

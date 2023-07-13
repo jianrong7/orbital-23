@@ -19,7 +19,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func delayReadFileUpdateAPIGateway() {
+func delayReadFileUpdateAPIGateway() { // to allow the idlmanagement http server to start up properly before it sends the update request
 	time.Sleep(5 * time.Second)
 	readFileUpdateAPIGateway()
 }
@@ -78,8 +78,9 @@ func runFileWatcher() {
 					return
 				}
 				log.Println("event:", event)
-				if event.Name == "serviceMap.json" && event.Has(fsnotify.Create) {
-					log.Println("new file:", event.Name)
+				// if the file serviceMap.json is modified, it will generate a Write operation, which will trigger the update
+				if event.Name == "serviceMap.json" && event.Has(fsnotify.Write) {
+					log.Println("serviceMap.json modified")
 					go readFileUpdateAPIGateway()
 				}
 			case err, ok := <-watcher.Errors:
@@ -97,7 +98,7 @@ func runFileWatcher() {
 		log.Fatal(err)
 	}
 
-	// Block main goroutine forever.
+	// Block function goroutine forever.
 	<-make(chan struct{})
 }
 
