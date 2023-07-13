@@ -18,6 +18,7 @@ import (
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/hertz-contrib/registry/consul"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/fsnotify/fsnotify"
 )
 
 func updateAPIGateway(content []byte) {
@@ -47,21 +48,7 @@ func getLocalIPv4Address() (string, error) {
 	return "", fmt.Errorf("not found ipv4 address")
 }
 
-func main() {
-	// read in the new service mapping from the serviceMap.json file, reallocating a new map
-	serviceMap := make(map[string]map[string]string)
-	content, err := os.ReadFile("serviceMap.json")
-	if err != nil {
-		log.Println("Problem reading serverConfig.json")
-		panic(err)
-	}
-
-	err = jsoniter.Unmarshal(content, &serviceMap)
-	if err != nil {
-		log.Println("Problem unmarshalling config")
-		panic(err)
-	}
-
+func runHTTPServer() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
 	config.Address = "127.0.0.1:8500"
@@ -112,4 +99,62 @@ func main() {
 		ctx.SetStatusCode(consts.StatusOK)
 	})
 	h.Spin()
+}
+
+func runFileWatcher() {
+	watcher, err := fsnotify.NewWatcher()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer watcher.Close()
+
+    // Start listening for events.
+    go func() {
+        for {
+            select {
+            case event, ok := <-watcher.Events:
+                if !ok {
+                    return
+                }
+                log.Println("event:", event)
+                if event.Name == "serviceMap.json" {
+                    log.Println("modified file:", event.Name)
+					go updateAPIGateway()
+                }
+            case err, ok := <-watcher.Errors:
+                if !ok {
+                    return
+                }
+                log.Println("error:", err)
+            }
+        }
+    }()
+
+    // Add a path.
+    err = watcher.Add("./")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Block main goroutine forever.
+    <-make(chan struct{})
+}
+
+func main() {
+	// read in the new service mapping from the serviceMap.json file, reallocating a new map
+	serviceMap := make(map[string]map[string]string)
+	content, err := os.ReadFile("serviceMap.json")
+	if err != nil {
+		log.Println("Problem reading serverConfig.json")
+		panic(err)
+	}
+
+	err = jsoniter.Unmarshal(content, &serviceMap)
+	if err != nil {
+		log.Println("Problem unmarshalling config")
+		panic(err)
+	}
+
+	go runHTTPServer();
+	go runFileWatcher();
 }
