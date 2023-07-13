@@ -81,14 +81,14 @@ func main() {
 			return
 		}
 		// build a consul resolver with the consul client
-		r := hconsul.NewConsulResolver(consulClient)
+		hr := hconsul.NewConsulResolver(consulClient)
 
 		// build a hertz client with the consul resolver
 		cli, err := hclient.NewClient()
 		if err != nil {
 			panic(err)
 		}
-		cli.Use(sd.Discovery(r))
+		cli.Use(sd.Discovery(hr))
 
 		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using RPC
 			for serviceVersion, thriftFileName := range innerMap {
