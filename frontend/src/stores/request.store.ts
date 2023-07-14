@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { isValidHttpUrl, isJsonString } from "@/utils";
 
 export interface RequestStore {
@@ -32,8 +32,13 @@ const useRequestStore = create<RequestStore>((set, get) => ({
       isValidJsonBody: isJsonString(jsonBody),
     });
     if (isValidHttpUrl(url) && isJsonString(jsonBody)) {
-      const data = await axios.post(url, jsonBody);
-      set({ response: data });
+      try {
+        const data = await axios.post(url, jsonBody);
+        set({ response: data });
+      } catch (e) {
+        const err = e as AxiosError;
+        set({ response: err?.response });
+      }
     }
     set({ isSendingRequest: false });
   },
