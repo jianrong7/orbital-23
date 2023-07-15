@@ -1,16 +1,8 @@
 namespace go service1v2
 
-struct Request {
-    1: string message
-}
-
-struct Response {
-    1: string message
-}
-
 struct AddRequest {
-    1: i64 first
-    2: i64 second
+    1: required i64 first
+    2: required i64 second
 }
 
 struct AddResponse {
@@ -18,8 +10,8 @@ struct AddResponse {
 }
 
 struct SubRequest {
-    1: i64 first
-    2: i64 second
+    1: required i64 first
+    2: required i64 second
 }
 
 struct SubResponse {
