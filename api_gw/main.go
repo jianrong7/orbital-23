@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -143,6 +144,7 @@ func main() {
 		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
 		serviceVersion := ctx.Param("version")
 		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
+		log.Println(serviceName, serviceVersion, methodName)
 
 		thriftFileDir := "./thrift_files/" + serviceMap[serviceName][serviceVersion]
 
@@ -150,29 +152,29 @@ func main() {
 
 		p, err := generic.NewThriftFileProvider(thriftFileDir)
 		if err != nil {
-			hlog.Error("Problem adding new thrift file provider")
-			genErrResp(ctx, consts.StatusBadRequest, err)
+			hlog.Error(fmt.Errorf("missing thrift file for service %s, version %s", serviceName, serviceVersion))
+			genErrResp(ctx, consts.StatusNotFound, fmt.Errorf("missing thrift file for service %s, version %s", serviceName, serviceVersion))
 			return
 		}
 
 		g, err := generic.JSONThriftGeneric(p)
 		if err != nil {
 			hlog.Error("Problem creating new JSONThriftGeneric")
-			genErrResp(ctx, consts.StatusBadRequest, err)
+			genErrResp(ctx, consts.StatusInternalServerError, err)
 			return
 		}
 
 		rpcClient, err := genericclient.NewClient(serviceName+serviceVersion, g, kclient.WithResolver(r), kclient.WithRPCTimeout(time.Second*3))
 		if err != nil {
 			hlog.Error("Problem creating new generic client")
-			genErrResp(ctx, consts.StatusBadRequest, err)
+			genErrResp(ctx, consts.StatusInternalServerError, err)
 			return
 		}
-
+		
 		res, err := rpcClient.GenericCall(context.Background(), methodName, string(ctx.GetRawData()))
 		if err != nil {
-			hlog.Error("Problem with generic call")
-			genErrResp(ctx, consts.StatusInternalServerError, err)
+			hlog.Error(err)
+			genErrResp(ctx, consts.StatusNotFound, err)
 			return
 		}
 
