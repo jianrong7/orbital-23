@@ -37,7 +37,7 @@ func readFileUpdateAPIGateway() {
 		log.Println("Problem unmarshalling config")
 		panic(err)
 	}
-	_, err = http.Post("http://127.0.0.1:8888/idlmanagement/update", "application/json",
+	_, err = http.Post("http://172.31.37.194:8888/idlmanagement/update", "application/json",
 		bytes.NewBuffer(content))
 	if err != nil {
 		log.Println("Problem sending POST request update")
