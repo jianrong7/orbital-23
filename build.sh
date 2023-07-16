@@ -2,7 +2,11 @@
 export GOOS=linux
 export GOARCH=amd64
 
-cd ./idlmanagement
+cd ./api_gw
+rm api_gw
+go build .
+
+cd ../service_definitions/idlmanagement
 rm idlmanagement
 go build .
 
