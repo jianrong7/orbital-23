@@ -36,7 +36,7 @@ func main() {
 	}))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := kconsul.NewConsulResolver("13.229.227.130:8500")
+	r, err := kconsul.NewConsulResolver("172.31.34.54:8500")
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver (Kitex)")
 		panic(err)
