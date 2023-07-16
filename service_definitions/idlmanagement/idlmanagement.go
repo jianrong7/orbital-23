@@ -37,7 +37,7 @@ func readFileUpdateAPIGateway() {
 		log.Println("Problem unmarshalling config")
 		panic(err)
 	}
-	_, err = http.Post("http://172.31.37.194:8888/idlmanagement/update", "application/json",
+	_, err = http.Post("http://127.0.0.1:8888/idlmanagement/update", "application/json",
 		bytes.NewBuffer(content))
 	if err != nil {
 		log.Println("Problem sending POST request update")
@@ -105,7 +105,7 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = "172.31.34.54:8500"
+	config.Address = "127.0.0.1:8500"
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
@@ -118,12 +118,12 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	
+	addr := "127.0.0.1:9999"
 	h := server.Default(
-		server.WithHostPorts("172.31.37.194:9999"),
+		server.WithHostPorts(addr),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
-			Addr:        utils.NewNetAddr("tcp", "172.31.37.194:9999"),
+			Addr:        utils.NewNetAddr("tcp", addr),
 			Weight:      10,
 			Tags:        nil,
 		}),
