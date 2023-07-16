@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	s2v1 "api_gw/service_definitions/kitex_gen/service2v1"
@@ -29,6 +30,8 @@ func (g *Service2Impl) GenericCall(ctx context.Context, method string, request i
 			panic(err)
 		}
 		return res, nil
+
+		default:
+			return nil, errors.New("Unknown method: " + method)
 	}
-	return
 }

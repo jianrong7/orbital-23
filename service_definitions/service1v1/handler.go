@@ -19,12 +19,10 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 	switch method {
 	case "Add":
 		var req s1v1.AddRequest
-		log.Println("reqbuf",reqBuf)
 		err = jsoniter.UnmarshalFromString(reqBuf, &req)
 		if err != nil {
 			panic(err)
 		}
-		log.Println(req)
 		respBuf := &s1v1.AddResponse{Sum: req.First + req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
