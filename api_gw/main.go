@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	h := server.Default(server.WithHostPorts("127.0.0.1:8888"))
+	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
 	h.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"*"},
@@ -36,7 +36,7 @@ func main() {
 	}))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := kconsul.NewConsulResolver("127.0.0.1:8500")
+	r, err := kconsul.NewConsulResolver("13.229.227.130:8500")
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver (Kitex)")
 		panic(err)
@@ -74,7 +74,7 @@ func main() {
 
 		// build a consul client
 		consulConfig := consulapi.DefaultConfig()
-		consulConfig.Address = "127.0.0.1:8500"
+		consulConfig.Address = "13.229.227.130:8500"
 		consulClient, err := consulapi.NewClient(consulConfig)
 		if err != nil {
 			log.Fatal(err)

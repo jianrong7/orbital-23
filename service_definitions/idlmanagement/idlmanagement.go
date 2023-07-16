@@ -105,7 +105,7 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = "127.0.0.1:8500"
+	config.Address = "13.229.227.130:8500"
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
@@ -118,12 +118,12 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	addr := "127.0.0.1:9999"
+	
 	h := server.Default(
-		server.WithHostPorts(addr),
+		server.WithHostPorts("127.0.0.1:9999"),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
-			Addr:        utils.NewNetAddr("tcp", addr),
+			Addr:        utils.NewNetAddr("tcp", "127.0.0.1:9999"),
 			Weight:      10,
 			Tags:        nil,
 		}),
