@@ -1,12 +1,11 @@
-#!/usr/bin/env bash
-RUN_NAME="service1v1"
 
-mkdir -p output/bin
-cp script/* output/
-chmod +x output/bootstrap.sh
+#!/bin/bash
 
-if [ "$IS_SYSTEM_TEST_ENV" != "1" ]; then
-    go build -o output/bin/${RUN_NAME}
-else
-    go test -c -covermode=set -o output/bin/${RUN_NAME} -coverpkg=./...
-fi
+export GOOS=linux
+export GOARCH=amd64
+
+cd ./idlmanagement
+go build .
+
+cd ../service1v2
+go build .
