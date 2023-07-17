@@ -68,12 +68,14 @@ resource "aws_instance" "consul_server" {
     echo >&2 "Consul is installed."
   else # if server does not have consul
     echo >&2 "Consul is not installed."
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    sudo apt-get update && sudo apt-get install consul
+    sudo yum install -y yum-utils shadow-utils
+    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+    sudo yum -y install consul
   fi 
+
   consul -v
-  consul agent -dev -client="0.0.0.0" &
+  consul agent -dev -client="0.0.0.0"
+  
   EOL
 
   tags = {
@@ -117,6 +119,33 @@ resource "aws_instance" "service1v1" {
   tags = {
     Name = "service1v1"
   }
+}
+
+resource "aws_internet_gateway" "my_internet_gateway" {
+  vpc_id = aws_vpc.orbital-23.id
+
+  tags = {
+    Name = "dev-igw"
+  }
+}
+
+resource "aws_route_table" "my_public_rt" {
+  vpc_id = aws_vpc.orbital-23.id
+
+  tags = {
+    Name = "dev_public_rt"
+  }
+}
+
+resource "aws_route" "default_route" {
+  route_table_id         = aws_route_table.my_public_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.my_internet_gateway.id
+}
+
+resource "aws_route_table_association" "my_public_assoc" {
+  subnet_id      = aws_subnet.sg_a.id
+  route_table_id = aws_route_table.my_public_rt.id
 }
 
 resource "aws_security_group" "vpc_sg" {
