@@ -10,6 +10,54 @@ terraform {
 provider "aws" {
   region = "ap-southeast-1"
 }
+
+resource "aws_vpc" "orbital-23" {
+  cidr_block    = "172.31.0.0/16"
+}
+
+resource "aws_instance" "api_gateway" {
+  ami           = "ami-0b1217c6bff20e276"
+  instance_type = "t2.micro"
+
+  user_data = <<-EOL
+  #!/bin/bash -xe
+
+  yum update -y
+  yum install git -y
+  
+  
+
+  EOL
+
+  tags = {
+    Name = "API_Gateway"
+  }
+}
+
+resource "aws_instance" "consul_server" {
+  ami           = aws_ami_from_instance.example.id
+  instance_type = "t2.micro"
+  key_name = aws_key_pair.aws_ec2.id
+  vpc_security_group_ids = [aws_security_group.my_sg.id]
+  subnet_id              = aws_subnet.my_public_subnet.id
+
+  user_data = <<-EOL
+  #!/bin/bash -xe
+
+  hash foo 2>/dev/null || { echo >&2 "I require foo but it's not installed.  Aborting."; exit 1; }
+
+  sudo yum install -y yum-utils shadow-utils
+  sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+  sudo yum -y install consul
+  consul -v
+  consul agent -dev -client="0.0.0.0"
+  EOL
+
+  tags = {
+    Name = "Consul_Server"
+  }
+}
+
 # NOTHING WORKS HERE.
 # resource "aws_ami_from_instance" "example" {
 #   name               = "terraform-example"
@@ -89,24 +137,3 @@ provider "aws" {
 #   }
 # }
 
-# resource "aws_instance" "app_server" {
-#   ami           = aws_ami_from_instance.example.id
-#   instance_type = "t2.micro"
-#   key_name = aws_key_pair.aws_ec2.id
-#   vpc_security_group_ids = [aws_security_group.my_sg.id]
-#   subnet_id              = aws_subnet.my_public_subnet.id
-
-#   # user_data = <<-EOL
-#   # #!/bin/bash -xe
-
-#   # sudo yum install -y yum-utils shadow-utils
-#   # sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
-#   # sudo yum -y install consul
-#   # consul -v
-#   # consul agent -dev -client="0.0.0.0"
-#   # EOL
-
-#   tags = {
-#     Name = "ExampleAppServerInstance"
-#   }
-# }
