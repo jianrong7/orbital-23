@@ -29,64 +29,91 @@ resource "aws_subnet" "sg_a" {
 
 # can add more subnets to look cooler with the different network addresses
 
-# resource "aws_key_pair" "orbital-23" {
-#   key_name = "orbital-23"
-#   public_key = var.orbital_public_key
-# }
-
-resource "aws_instance" "api_gateway" {
-  ami           = var.image_id
-  instance_type = var.instance_type
-  key_name      = "orbital-23"
-  vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.api_gw_sg.id, aws_security_group.ssh_sg.id]
-  subnet_id              = aws_subnet.sg_a.id
-
-  user_data = <<-EOL
-  #!/bin/bash -xe
-
-  yum update -y
-  
-  EOL
-
-  tags = {
-    Name = "API_Gateway"
-  }
+resource "aws_key_pair" "tfkey" {
+  key_name = "tfkey"
+  public_key = file("./tfkey.pub")
 }
 
 resource "aws_instance" "consul_server" {
   ami           = var.image_id
   instance_type = "t2.micro"
-  key_name      = "orbital-23"
+  key_name      = aws_key_pair.tfkey.id
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.consul_server_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
-  user_data = <<-EOL
-  #!/bin/bash -xe
+  provisioner "file" {
+    source = "./scripts/consul_install.sh"
+    destination = "/tmp/consul_install.sh"
 
-  if hash consul 2>/dev/null # if server has consul
-  then
-    echo >&2 "Consul is installed."
-  else # if server does not have consul
-    echo >&2 "Consul is not installed."
-    sudo yum install -y yum-utils shadow-utils
-    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
-    sudo yum -y install consul
-  fi 
+    connection {
+      type = "ssh"
+      user = "ec2-user"
+      private_key = file("./tfkey.pem")
+      host = aws_instance.consul_server.public_ip
+    }
+  }
 
-  consul -v
-  consul agent -dev -client="0.0.0.0"
-  
-  EOL
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/consul_install.sh",
+      "/tmp/consul_install.sh"
+    ]
+
+    connection {
+      type = "ssh"
+      user = "ec2-user"
+      private_key = file("./tfkey.pem")
+      host = aws_instance.consul_server.public_ip
+    }
+  }
 
   tags = {
     Name = "Consul_Server"
   }
 }
 
+resource "aws_instance" "api_gateway" {
+  ami           = var.image_id
+  instance_type = var.instance_type
+  key_name      = aws_key_pair.tfkey.id
+  vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.api_gw_sg.id, aws_security_group.ssh_sg.id]
+  subnet_id              = aws_subnet.sg_a.id
+
+  # provisioner "file" {
+  #   source = "./scripts/consul_install.sh"
+  #   destination = "/tmp/consul_install.sh"
+
+  #   connection {
+  #     type = "ssh"
+  #     user = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host = aws_instance.consul_server.public_ip
+  #   }
+  # }
+
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "chmod +x /tmp/consul_install.sh",
+  #     "/tmp/consul_install.sh"
+  #   ]
+
+  #   connection {
+  #     type = "ssh"
+  #     user = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host = aws_instance.consul_server.public_ip
+  #   }
+  # }
+
+  tags = {
+    Name = "API_Gateway"
+  }
+}
+
 resource "aws_instance" "idl_management" {
   ami           = var.image_id
   instance_type = var.instance_type
-  key_name      = "orbital-23"
+  key_name      = aws_key_pair.tfkey.id
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
@@ -105,7 +132,7 @@ resource "aws_instance" "idl_management" {
 resource "aws_instance" "service1v1" {
   ami           = var.image_id
   instance_type = var.instance_type
-  key_name      = "orbital-23"
+  key_name      = aws_key_pair.tfkey.id
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
@@ -157,7 +184,7 @@ resource "aws_security_group" "vpc_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.orbital-23.cidr_block, var.my_ip]
+    cidr_blocks = [aws_vpc.orbital-23.cidr_block]
   }
   egress {
     from_port   = 0
@@ -244,12 +271,7 @@ variable "key_pair_id" {
   description = "The id of the key_pair used for the EC2 deployment."
 }
 
-variable "orbital_public_key" {
-  type = string
-  description = "The public key used for the EC2 deployment."
-}
-
-variable "my_ip" {
-  type = string
-  description = "My Public IP address."
-}
+# variable "tf_public_key" {
+#   type = string
+#   description = "The public key used for the EC2 deployment."
+# }
