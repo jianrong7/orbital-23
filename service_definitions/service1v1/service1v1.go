@@ -5,6 +5,8 @@ import (
 	"net"
 	"sync"
 
+	ga "api_gw/infrastructure/getAddresses"
+
 	"github.com/cloudwego/kitex/pkg/generic"
 	"github.com/cloudwego/kitex/pkg/registry"
 	"github.com/cloudwego/kitex/server"
@@ -13,7 +15,7 @@ import (
 )
 
 func main() {
-	r, err := consul.NewConsulRegister("127.0.0.1:8500")
+	r, err := consul.NewConsulRegister(ga.GetAddress("consul_server_private_address"))
 	if err != nil {
 		log.Fatal(err)
 	}

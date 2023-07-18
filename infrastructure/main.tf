@@ -9,7 +9,7 @@ terraform {
 
 provider "aws" {
   region = "ap-southeast-1"
-  # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env variables must be set!
+  # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env variables must be set before running terraform plan / apply!
 }
 
 resource "aws_vpc" "orbital-23" {
@@ -53,19 +53,19 @@ resource "aws_instance" "consul_server" {
     }
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/consul_install.sh",
-      "/tmp/consul_install.sh"
-    ]
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "chmod +x /tmp/consul_install.sh",
+  #     "/tmp/consul_install.sh"
+  #   ]
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = self.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = self.public_ip
+  #   }
+  # }
 
   tags = {
     Name = "Consul_Server"
@@ -74,15 +74,14 @@ resource "aws_instance" "consul_server" {
 
 resource "terraform_data" "outputs" {
   depends_on = [
-    aws_instance.consul_server
+    aws_instance.consul_server,
+    aws_instance.api_gateway,
+    aws_instance.idl_management,
+    aws_instance.service1v1
   ]
 
   provisioner "local-exec" {
-    command = "terraform output -json > outputs.json"
-  }
-
-  provisioner "local-exec" {
-    command = "../build.sh"
+    command = "./scripts/run_seq.sh"
   }
 
 }
@@ -94,31 +93,31 @@ resource "aws_instance" "api_gateway" {
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.api_gw_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
-  provisioner "file" {
-    source      = "../api_gw/"
-    destination = "/api_gw"
+  # provisioner "file" {
+  #   source      = "../api_gw/"
+  #   destination = "/api_gw"
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = self.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = self.public_ip
+  #   }
+  # }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /api_gw/api_gw",
-      "/api_gw/api_gw"
-    ]
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "chmod +x /api_gw/api_gw",
+  #     "/api_gw/api_gw"
+  #   ]
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = aws_instance.api_gateway.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = aws_instance.api_gateway.public_ip
+  #   }
+  # }
 
   tags = {
     Name = "API_Gateway"
@@ -132,31 +131,31 @@ resource "aws_instance" "idl_management" {
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
-  provisioner "file" {
-    source      = "../service_definitions/idlmanagement/"
-    destination = "/idlmanagement"
+  # provisioner "file" {
+  #   source      = "../service_definitions/idlmanagement/"
+  #   destination = "/idlmanagement"
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = aws_instance.idl_management.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = self.public_ip
+  #   }
+  # }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /idlmanagement/idlmanagement",
-      "/idlmanagement/idlmanagement"
-    ]
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "chmod +x /idlmanagement/idlmanagement",
+  #     "/idlmanagement/idlmanagement"
+  #   ]
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = aws_instance.idl_management.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = aws_instance.idl_management.public_ip
+  #   }
+  # }
 
   tags = {
     Name = "IDL_Management_Service"
@@ -164,40 +163,41 @@ resource "aws_instance" "idl_management" {
 }
 
 resource "aws_instance" "service1v1" {
+  count                  = 1
   ami                    = var.image_id
   instance_type          = var.instance_type
   key_name               = aws_key_pair.tfkey.id
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
-  provisioner "file" {
-    source      = "../service_definitions/service1v1/"
-    destination = "/service1v1"
+  # provisioner "file" {
+  #   source      = "../service_definitions/service1v1/"
+  #   destination = "/service1v1"
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = aws_instance.service1v1.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = self.public_ip
+  #   }
+  # }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /service1v1/service1v1",
-      "/service1v1/service1v1"
-    ]
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "chmod +x /service1v1/service1v1",
+  #     "/service1v1/service1v1"
+  #   ]
 
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = file("./tfkey.pem")
-      host        = aws_instance.service1v1.public_ip
-    }
-  }
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ec2-user"
+  #     private_key = file("./tfkey.pem")
+  #     host        = aws_instance.service1v1.public_ip
+  #   }
+  # }
 
   tags = {
-    Name = "service1v1"
+    Name = "service1v1-${count.index + 1}"
   }
 }
 
@@ -324,7 +324,20 @@ variable "key_pair_id" {
   description = "The id of the key_pair used for the EC2 deployment."
 }
 
-# variable "tf_public_key" {
-#   type = string
-#   description = "The public key used for the EC2 deployment."
-# }
+variable "service1v1_count" {
+  type        = number
+  description = "The number of identical EC2 instances to be deployed for service1v1."
+  default     = 1
+}
+
+variable "service1v2_count" {
+  type        = number
+  description = "The number of identical EC2 instances to be deployed for service1v2."
+  default     = 1
+}
+
+variable "service2v1_count" {
+  type        = number
+  description = "The number of identical EC2 instances to be deployed for service2v1."
+  default     = 1
+}

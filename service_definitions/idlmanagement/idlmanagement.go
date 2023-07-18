@@ -3,10 +3,14 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
+
+	ga "api_gw/infrastructure/getAddresses"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -37,7 +41,9 @@ func readFileUpdateAPIGateway() {
 		log.Println("Problem unmarshalling config")
 		panic(err)
 	}
-	_, err = http.Post("http://127.0.0.1:8888/idlmanagement/update", "application/json",
+
+	address := "http://" + ga.GetAddress("api_gw_public_address") + "/idlmanagement/update"
+	_, err = http.Post(address, "application/json",
 		bytes.NewBuffer(content))
 	if err != nil {
 		log.Println("Problem sending POST request update")
@@ -45,22 +51,22 @@ func readFileUpdateAPIGateway() {
 	}
 }
 
-// func getLocalIPv4Address() (string, error) {
-// 	addr, err := net.InterfaceAddrs()
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	for _, addr := range addr {
-// 		ipNet, isIpNet := addr.(*net.IPNet)
-// 		if isIpNet && !ipNet.IP.IsLoopback() {
-// 			ipv4 := ipNet.IP.To4()
-// 			if ipv4 != nil {
-// 				return ipv4.String(), nil
-// 			}
-// 		}
-// 	}
-// 	return "", fmt.Errorf("not found ipv4 address")
-// }
+func getLocalIPv4Address() (string, error) {
+	addr, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+	for _, addr := range addr {
+		ipNet, isIpNet := addr.(*net.IPNet)
+		if isIpNet && !ipNet.IP.IsLoopback() {
+			ipv4 := ipNet.IP.To4()
+			if ipv4 != nil {
+				return ipv4.String(), nil
+			}
+		}
+	}
+	return "", fmt.Errorf("not found ipv4 address")
+}
 
 func runFileWatcher() {
 	watcher, err := fsnotify.NewWatcher()
@@ -105,7 +111,7 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = "127.0.0.1:8500"
+	config.Address = ga.GetAddress("consul_server_private_address")
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
@@ -114,13 +120,13 @@ func main() {
 	// build a consul register with the consul client
 	r := consul.NewConsulRegister(consulClient)
 	// run Hertz with the consul register
-	// localIP, err := getLocalIPv4Address()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	addr := "127.0.0.1:9999"
+	localIP, err := getLocalIPv4Address()
+	if err != nil {
+		log.Fatal(err)
+	}
+	addr := localIP + ":9999"
 	h := server.Default(
-		server.WithHostPorts(addr),
+		server.WithHostPorts("0.0.0.0:9999"),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
 			Addr:        utils.NewNetAddr("tcp", addr),
@@ -158,7 +164,4 @@ func main() {
 		ctx.SetStatusCode(consts.StatusOK)
 	})
 	h.Spin()
-
-	// go runHTTPServer()
-
 }
