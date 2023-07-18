@@ -1,0 +1,32 @@
+{
+  "api_gw_public_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "18.141.158.227:8888"
+  },
+  "api_gw_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "18.141.158.227"
+  },
+  "consul_server_private_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "172.31.0.160:8500"
+  },
+  "consul_server_private_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "172.31.0.160"
+  },
+  "consul_server_public_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "3.0.183.242:8500"
+  },
+  "consul_server_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "3.0.183.242"
+  }
+}
