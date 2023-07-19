@@ -72,19 +72,19 @@ resource "aws_instance" "consul_server" {
   }
 }
 
-resource "terraform_data" "outputs" {
-  depends_on = [
-    aws_instance.consul_server,
-    aws_instance.api_gateway,
-    aws_instance.idl_management,
-    aws_instance.service1v1
-  ]
+# resource "terraform_data" "outputs" {
+#   depends_on = [
+#     aws_instance.consul_server,
+#     aws_instance.api_gateway,
+#     aws_instance.idl_management,
+#     aws_instance.service1v1
+#   ]
 
-  provisioner "local-exec" {
-    command = "./scripts/run_seq.sh"
-  }
+#   provisioner "local-exec" {
+#     command = "C:/Users/gabri/OneDrive/Desktop/Code/Orbital-23/orbital-23/infrastructure/scripts/run_seq.sh"
+#   }
 
-}
+# }
 
 resource "aws_instance" "api_gateway" {
   ami                    = var.image_id
@@ -163,7 +163,7 @@ resource "aws_instance" "idl_management" {
 }
 
 resource "aws_instance" "service1v1" {
-  count                  = 1
+  count                  = var.service1v1_count
   ami                    = var.image_id
   instance_type          = var.instance_type
   key_name               = aws_key_pair.tfkey.id
@@ -197,7 +197,7 @@ resource "aws_instance" "service1v1" {
   # }
 
   tags = {
-    Name = "service1v1-${count.index + 1}"
+    Name = "service1v1-${count.index}"
   }
 }
 
@@ -317,11 +317,6 @@ variable "image_id" {
 variable "instance_type" {
   type        = string
   description = "The type of EC2 instance you want to launch."
-}
-
-variable "key_pair_id" {
-  type        = string
-  description = "The id of the key_pair used for the EC2 deployment."
 }
 
 variable "service1v1_count" {

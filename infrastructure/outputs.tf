@@ -33,12 +33,12 @@ output "consul_server_private_address" {
   value       = "${aws_instance.consul_server.private_ip}:8500"
 }
 
-output "idl_management_service_ip" {
+output "idl_management_service_public_ip" {
   description = "Public IPv4 address of IDL Management Service."
   value       = aws_instance.idl_management.public_ip
 }
 
-output "service1v1_public_ips" {
+output "service1v1_public_ip" {
   description = "List of private IP addresses assigned to the service1v1 instances."
   value       = [aws_instance.service1v1.*.private_ip]
 }
