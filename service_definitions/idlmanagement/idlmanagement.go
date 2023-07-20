@@ -120,7 +120,7 @@ func main() {
 	// }
 	
 	h := server.Default(
-		server.WithHostPorts("0.0.0.0:9999"),
+		server.WithHostPorts("172.31.30.231:9999"),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
 			Addr:        utils.NewNetAddr("tcp", "172.31.30.231:9999"),
