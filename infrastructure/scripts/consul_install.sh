@@ -8,9 +8,9 @@ echo >&2 "Consul is not installed."
 sudo yum install -y yum-utils shadow-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
 sudo yum -y install consul
-fi 
+fi
 
-nohup consul agent -dev -client="0.0.0.0" & disown
+consul agent -dev -client="0.0.0.0" &
 sleep 5
 echo "Consul agent launched"
 exit

@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 	"sync"
-
-	ga "api_gw/infrastructure/getAddresses"
 
 	"github.com/cloudwego/kitex/pkg/generic"
 	"github.com/cloudwego/kitex/pkg/registry"
@@ -15,7 +14,7 @@ import (
 )
 
 func main() {
-	r, err := consul.NewConsulRegister(ga.GetAddress("consul_server_private_address"))
+	r, err := consul.NewConsulRegister(os.Args[1]) // consul address as command-line argument
 	if err != nil {
 		log.Fatal(err)
 	}

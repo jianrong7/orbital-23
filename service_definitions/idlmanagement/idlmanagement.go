@@ -3,14 +3,10 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"time"
-
-	ga "api_gw/infrastructure/getAddresses"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -24,7 +20,7 @@ import (
 )
 
 func delayReadFileUpdateAPIGateway() { // to allow the idlmanagement http server to start up properly before it sends the update request
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second) // hacky time delay
 	readFileUpdateAPIGateway()
 }
 
@@ -42,30 +38,13 @@ func readFileUpdateAPIGateway() {
 		panic(err)
 	}
 
-	address := "http://" + ga.GetAddress("api_gw_public_address") + "/idlmanagement/update"
+	address := "http://" + os.Args[3] + "/idlmanagement/update" // api gateway address as command-line argument 3
 	_, err = http.Post(address, "application/json",
 		bytes.NewBuffer(content))
 	if err != nil {
 		log.Println("Problem sending POST request update")
 		panic(err)
 	}
-}
-
-func getLocalIPv4Address() (string, error) {
-	addr, err := net.InterfaceAddrs()
-	if err != nil {
-		return "", err
-	}
-	for _, addr := range addr {
-		ipNet, isIpNet := addr.(*net.IPNet)
-		if isIpNet && !ipNet.IP.IsLoopback() {
-			ipv4 := ipNet.IP.To4()
-			if ipv4 != nil {
-				return ipv4.String(), nil
-			}
-		}
-	}
-	return "", fmt.Errorf("not found ipv4 address")
 }
 
 func runFileWatcher() {
@@ -111,7 +90,7 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = ga.GetAddress("consul_server_private_address")
+	config.Address = os.Args[1] // consul address as command-line argument 1
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
@@ -120,16 +99,14 @@ func main() {
 	// build a consul register with the consul client
 	r := consul.NewConsulRegister(consulClient)
 	// run Hertz with the consul register
-	localIP, err := getLocalIPv4Address()
 	if err != nil {
 		log.Fatal(err)
 	}
-	addr := localIP + ":9999"
 	h := server.Default(
 		server.WithHostPorts("0.0.0.0:9999"),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
-			Addr:        utils.NewNetAddr("tcp", addr),
+			Addr:        utils.NewNetAddr("tcp", os.Args[2]), // own address as command-line argument 2
 			Weight:      10,
 			Tags:        nil,
 		}),

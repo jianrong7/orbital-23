@@ -53,19 +53,19 @@ resource "aws_instance" "consul_server" {
     }
   }
 
-  # provisioner "remote-exec" {
-  #   inline = [
-  #     "chmod +x /tmp/consul_install.sh",
-  #     "/tmp/consul_install.sh"
-  #   ]
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/consul_install.sh",
+      "/tmp/consul_install.sh"
+    ]
 
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = self.public_ip
-  #   }
-  # }
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = file("./tfkey.pem")
+      host        = self.public_ip
+    }
+  }
 
   tags = {
     Name = "Consul_Server"

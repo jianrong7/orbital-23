@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 	"sync"
 
 	"github.com/cloudwego/kitex/pkg/generic"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	r, err := consul.NewConsulRegister("127.0.0.1:8500")
+	r, err := consul.NewConsulRegister(os.Args[1]) // consul address as command-line argument
 	if err != nil {
 		log.Fatal(err)
 	}

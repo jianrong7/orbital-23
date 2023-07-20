@@ -3,6 +3,10 @@
 cd ..
 terraform output -json > outputs.json
 cd ..
-# build.sh
+
+# ./build.sh
+
 cd infrastructure/scripts
-upload_and_run.sh
+
+python generate_script.py
+./upload_and_run.sh
