@@ -105,7 +105,7 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = "172.31.26.48:8500"
+	config.Address = "54.255.152.160:8500"
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
