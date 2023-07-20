@@ -42,7 +42,7 @@ func genSucResp(ctx *app.RequestContext, res interface{}) {
 }
 
 func main() {
-	h := server.Default(server.WithHostPorts("172.31.17.24:8888"))
+	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
 	h.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"*"},
