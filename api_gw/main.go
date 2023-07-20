@@ -90,7 +90,7 @@ func main() {
 
 		// build a consul client
 		consulConfig := consulapi.DefaultConfig()
-		consulConfig.Address = "54.255.152.160:8500"
+		consulConfig.Address = "172.31.26.48:8500"
 		consulClient, err := consulapi.NewClient(consulConfig)
 		if err != nil {
 			log.Fatal(err)
