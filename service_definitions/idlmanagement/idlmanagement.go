@@ -118,12 +118,12 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	addr := "172.31.30.231:9999"
+	
 	h := server.Default(
-		server.WithHostPorts(addr),
+		server.WithHostPorts("172.31.30.231:9999"),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
-			Addr:        utils.NewNetAddr("tcp", addr),
+			Addr:        utils.NewNetAddr("tcp", "172.31.30.231:9999"),
 			Weight:      10,
 			Tags:        nil,
 		}),
