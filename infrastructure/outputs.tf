@@ -48,13 +48,13 @@ output "service1v1_public_ip" {
   value       = [aws_instance.service1v1.*.public_ip]
 }
 
-# output "service1v2_public_ips" {
-#   description = "List of private IP addresses assigned to the service1v2 instances."
-#   value       = [aws_instance.service1v2.*.public_ip]
-# }
+output "service1v2_public_ip" {
+  description = "List of private IP addresses assigned to the service1v2 instances."
+  value       = [aws_instance.service1v2.*.public_ip]
+}
 
-# output "service2v1_public_ips" {
-#   description = "List of private IP addresses assigned to the service2v1 instances."
-#   value       = [aws_instance.service2v1.*.public_ip]
-# }
+output "service2v1_public_ip" {
+  description = "List of private IP addresses assigned to the service2v1 instances."
+  value       = [aws_instance.service2v1.*.public_ip]
+}
 

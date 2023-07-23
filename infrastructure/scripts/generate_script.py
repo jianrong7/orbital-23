@@ -11,6 +11,8 @@ config_load = [
     ("api_gw", "../../api_gw/", "./api_gw"),
     ("idl_management_service", "../../service_definitions/idlmanagement/", "./idlmanagement"),
     ("service1v1", "../../service_definitions/service1v1/", "./service1v1"),
+    ("service1v2", "../../service_definitions/service1v2/", "./service1v2"),
+    ("service2v1", "../../service_definitions/service2v1/", "./service2v1"),
 ]
 
 script.write("#!/bin/bash")
