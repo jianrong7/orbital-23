@@ -2,37 +2,37 @@
   "api_gw_public_address": {
     "sensitive": false,
     "type": "string",
-    "value": "3.1.213.19:8888"
+    "value": "18.139.224.140:8888"
   },
   "api_gw_public_ip": {
     "sensitive": false,
     "type": "string",
-    "value": "3.1.213.19"
+    "value": "18.139.224.140"
   },
   "consul_server_private_address": {
     "sensitive": false,
     "type": "string",
-    "value": "172.31.0.195:8500"
+    "value": "172.31.0.216:8500"
   },
   "consul_server_public_address": {
     "sensitive": false,
     "type": "string",
-    "value": "52.221.195.22:8500"
+    "value": "3.1.85.116:8500"
   },
   "consul_server_public_ip": {
     "sensitive": false,
     "type": "string",
-    "value": "52.221.195.22"
+    "value": "3.1.85.116"
   },
   "idl_management_service_private_address": {
     "sensitive": false,
     "type": "string",
-    "value": "172.31.0.7:9999"
+    "value": "172.31.0.91:9999"
   },
   "idl_management_service_public_ip": {
     "sensitive": false,
     "type": "string",
-    "value": "52.221.183.26"
+    "value": "18.140.56.168"
   },
   "service1v1_public_ip": {
     "sensitive": false,
@@ -50,8 +50,8 @@
     ],
     "value": [
       [
-        "18.141.158.28",
-        "54.169.172.226"
+        "13.229.85.143",
+        "13.250.45.115"
       ]
     ]
   }
