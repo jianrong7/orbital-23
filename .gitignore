@@ -92,3 +92,5 @@ terraform.rc
 go.work
 
 .env
+infrastructure/tfkey
+infrastructure/tfkey.pub

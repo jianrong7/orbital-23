@@ -20,7 +20,7 @@ import (
 )
 
 func delayReadFileUpdateAPIGateway() { // to allow the idlmanagement http server to start up properly before it sends the update request
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second) // hacky time delay
 	readFileUpdateAPIGateway()
 }
 
@@ -37,30 +37,15 @@ func readFileUpdateAPIGateway() {
 		log.Println("Problem unmarshalling config")
 		panic(err)
 	}
-	_, err = http.Post("http://127.0.0.1:8888/idlmanagement/update", "application/json",
+
+	address := "http://" + os.Args[3] + "/idlmanagement/update" // api gateway address as command-line argument 3
+	_, err = http.Post(address, "application/json",
 		bytes.NewBuffer(content))
 	if err != nil {
 		log.Println("Problem sending POST request update")
 		panic(err)
 	}
 }
-
-// func getLocalIPv4Address() (string, error) {
-// 	addr, err := net.InterfaceAddrs()
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	for _, addr := range addr {
-// 		ipNet, isIpNet := addr.(*net.IPNet)
-// 		if isIpNet && !ipNet.IP.IsLoopback() {
-// 			ipv4 := ipNet.IP.To4()
-// 			if ipv4 != nil {
-// 				return ipv4.String(), nil
-// 			}
-// 		}
-// 	}
-// 	return "", fmt.Errorf("not found ipv4 address")
-// }
 
 func runFileWatcher() {
 	watcher, err := fsnotify.NewWatcher()
@@ -105,7 +90,7 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = "127.0.0.1:8500"
+	config.Address = os.Args[1] // consul address as command-line argument 1
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
@@ -114,16 +99,14 @@ func main() {
 	// build a consul register with the consul client
 	r := consul.NewConsulRegister(consulClient)
 	// run Hertz with the consul register
-	// localIP, err := getLocalIPv4Address()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	addr := "127.0.0.1:9999"
+	if err != nil {
+		log.Fatal(err)
+	}
 	h := server.Default(
-		server.WithHostPorts(addr),
+		server.WithHostPorts("0.0.0.0:9999"),
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
-			Addr:        utils.NewNetAddr("tcp", addr),
+			Addr:        utils.NewNetAddr("tcp", os.Args[2]), // own address as command-line argument 2
 			Weight:      10,
 			Tags:        nil,
 		}),
@@ -158,7 +141,4 @@ func main() {
 		ctx.SetStatusCode(consts.StatusOK)
 	})
 	h.Spin()
-
-	// go runHTTPServer()
-
 }

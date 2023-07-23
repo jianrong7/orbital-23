@@ -1,0 +1,100 @@
+{
+  "api_gw_public_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "54.255.81.16:8888"
+  },
+  "api_gw_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "54.255.81.16"
+  },
+  "consul_server_private_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "172.31.0.26:8500"
+  },
+  "consul_server_public_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "54.169.83.22:8500"
+  },
+  "consul_server_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "54.169.83.22"
+  },
+  "idl_management_service_private_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "172.31.0.71:9999"
+  },
+  "idl_management_service_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "18.139.219.73"
+  },
+  "service1v1_public_ip": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        [
+          "tuple",
+          [
+            "string",
+            "string"
+          ]
+        ]
+      ]
+    ],
+    "value": [
+      [
+        "18.136.203.250",
+        "13.215.163.243"
+      ]
+    ]
+  },
+  "service1v2_public_ip": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        [
+          "tuple",
+          [
+            "string",
+            "string"
+          ]
+        ]
+      ]
+    ],
+    "value": [
+      [
+        "54.169.202.40",
+        "18.136.199.28"
+      ]
+    ]
+  },
+  "service2v1_public_ip": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        [
+          "tuple",
+          [
+            "string",
+            "string"
+          ]
+        ]
+      ]
+    ],
+    "value": [
+      [
+        "13.229.250.43",
+        "13.229.97.119"
+      ]
+    ]
+  }
+}
