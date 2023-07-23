@@ -72,52 +72,12 @@ resource "aws_instance" "consul_server" {
   }
 }
 
-# resource "terraform_data" "outputs" {
-#   depends_on = [
-#     aws_instance.consul_server,
-#     aws_instance.api_gateway,
-#     aws_instance.idl_management,
-#     aws_instance.service1v1
-#   ]
-
-#   provisioner "local-exec" {
-#     command = "C:/Users/gabri/OneDrive/Desktop/Code/Orbital-23/orbital-23/infrastructure/scripts/run_seq.sh"
-#   }
-
-# }
-
 resource "aws_instance" "api_gateway" {
   ami                    = var.image_id
   instance_type          = var.instance_type
   key_name               = aws_key_pair.tfkey.id
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.api_gw_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
-
-  # provisioner "file" {
-  #   source      = "../api_gw/"
-  #   destination = "/api_gw"
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = self.public_ip
-  #   }
-  # }
-
-  # provisioner "remote-exec" {
-  #   inline = [
-  #     "chmod +x /api_gw/api_gw",
-  #     "/api_gw/api_gw"
-  #   ]
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = aws_instance.api_gateway.public_ip
-  #   }
-  # }
 
   tags = {
     Name = "API_Gateway"
@@ -130,32 +90,6 @@ resource "aws_instance" "idl_management" {
   key_name               = aws_key_pair.tfkey.id
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
-
-  # provisioner "file" {
-  #   source      = "../service_definitions/idlmanagement/"
-  #   destination = "/idlmanagement"
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = self.public_ip
-  #   }
-  # }
-
-  # provisioner "remote-exec" {
-  #   inline = [
-  #     "chmod +x /idlmanagement/idlmanagement",
-  #     "/idlmanagement/idlmanagement"
-  #   ]
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = aws_instance.idl_management.public_ip
-  #   }
-  # }
 
   tags = {
     Name = "IDL_Management_Service"
@@ -170,34 +104,34 @@ resource "aws_instance" "service1v1" {
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
-  # provisioner "file" {
-  #   source      = "../service_definitions/service1v1/"
-  #   destination = "/service1v1"
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = self.public_ip
-  #   }
-  # }
-
-  # provisioner "remote-exec" {
-  #   inline = [
-  #     "chmod +x /service1v1/service1v1",
-  #     "/service1v1/service1v1"
-  #   ]
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ec2-user"
-  #     private_key = file("./tfkey.pem")
-  #     host        = aws_instance.service1v1.public_ip
-  #   }
-  # }
-
   tags = {
     Name = "service1v1-${count.index}"
+  }
+}
+
+resource "aws_instance" "service1v2" {
+  count                  = var.service1v2_count
+  ami                    = var.image_id
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.tfkey.id
+  vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
+  subnet_id              = aws_subnet.sg_a.id
+
+  tags = {
+    Name = "service1v2-${count.index}"
+  }
+}
+
+resource "aws_instance" "service2v1" {
+  count                  = var.service2v1_count
+  ami                    = var.image_id
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.tfkey.id
+  vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.ssh_sg.id]
+  subnet_id              = aws_subnet.sg_a.id
+
+  tags = {
+    Name = "service2v1-${count.index}"
   }
 }
 
@@ -307,16 +241,19 @@ resource "aws_security_group" "api_gw_sg" {
 variable "cidr_block" {
   type        = string
   description = "The IPv4 address of the VPC of the EC2 instances."
+  default     = "172.31.0.0/16"
 }
 
 variable "image_id" {
   type        = string
   description = "The AMI id you want to launch the EC2 instance in."
+  default     = "ami-0b1217c6bff20e276"
 }
 
 variable "instance_type" {
   type        = string
   description = "The type of EC2 instance you want to launch."
+  default     = "t2.micro"
 }
 
 variable "service1v1_count" {
