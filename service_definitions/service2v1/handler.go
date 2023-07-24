@@ -16,7 +16,12 @@ type Service2Impl struct{}
 // Mul implements the Service2Impl interface.
 func (g *Service2Impl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
 	log.Println("GenericCall from handler2:", request)
-	reqBuf := request.(string)
+	// JSON Validity Check
+	reqBuf := request.(string) // type assertion
+	isValid := jsoniter.Valid([]byte(reqBuf))
+	if !isValid {
+		return nil, errors.New("Invalid JSON request: " + reqBuf)
+	}
 	switch method {
 	case "Mul":
 		var req s2v1.MulRequest

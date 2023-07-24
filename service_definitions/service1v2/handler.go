@@ -15,7 +15,12 @@ type Service1Impl struct{}
 // GenericCall implements generic.Service.
 func (g *Service1Impl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
 	log.Println("GenericCall from handler1:", request)
-	reqBuf := request.(string)
+	// JSON Validity Check
+	reqBuf := request.(string) // type assertion
+	isValid := jsoniter.Valid([]byte(reqBuf))
+	if !isValid {
+		return nil, errors.New("Invalid JSON request: " + reqBuf)
+	}
 	switch method {
 	case "Add":
 		var req s1v2.AddRequest
