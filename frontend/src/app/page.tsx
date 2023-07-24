@@ -3,8 +3,21 @@
 import UrlInput from "@/components/UrlInput";
 import BodyRequest from "@/components/BodyRequest";
 import Response from "@/components/Response";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import useRequestStore from "@/stores/request.store";
 
 export default function Home() {
+  const { setUrl } = useRequestStore((state) => ({
+    setUrl: state.setUrl,
+  }));
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setUrl(searchParams.get("url") || "");
+  }, []);
+
   return (
     <>
       <header className="px-12 pt-12">
