@@ -1,3 +1,17 @@
+/*
+api_gw is the code for the API Gateway.
+
+It is built using the Hertz HTTP and Kitex RPC frameworks.
+https://github.com/cloudwego/hertz
+https://github.com/cloudwego/kitex
+
+It also utilises the Hashicorp Consul registry
+https://www.hashicorp.com/products/consul
+
+Usage:
+
+	./api_gw [Consul Private Address]
+*/
 package main
 
 import (
@@ -27,14 +41,18 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
+
+// Wrapper function for generating JSON error responses
 func genErrResp(ctx *app.RequestContext, statusCode int, err error) {
 	ctx.JSON(statusCode, utils.H{
 		"error": utils.H{
-			"code": statusCode,
+			"code":    statusCode,
 			"message": err.Error(),
 		},
 	})
 }
+
+// Wrapper function for generating JSON successful responses
 func genSucResp(ctx *app.RequestContext, res interface{}) {
 	ctx.JSON(consts.StatusOK, utils.H{
 		"data": res,
@@ -42,7 +60,8 @@ func genSucResp(ctx *app.RequestContext, res interface{}) {
 }
 
 func main() {
-	h := server.Default(server.WithHostPorts("0.0.0.0:8888"))
+	h := server.Default(server.WithHostPorts("0.0.0.0:8888")) // use "0.0.0.0:8888" to listen to all addresses on port 8888
+	// configuring logger for the API Gateway
 	h.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"*"},
@@ -51,7 +70,9 @@ func main() {
 	}))
 	hlog.SetLogger(hertzZerolog.New(hertzZerolog.WithTimestamp()))
 
-	r, err := kconsul.NewConsulResolver(os.Args[1]) // when running the executable, enter the consul address as a command-line argument
+	consul_address := os.Args[1] // taking the Consul server address as a command-line argument to make deployment easier
+	// Consul resolver for Kitex framework (RPC Servers)
+	r, err := kconsul.NewConsulResolver(consul_address)
 	if err != nil {
 		hlog.Error("Problem adding Consul Resolver (Kitex)")
 		panic(err)
@@ -78,7 +99,7 @@ func main() {
 		****** All thrift file names must be unique ******
 	*/
 
-	// TODO: add basicauth to this post request path, to prevent malicious attacks on the API Gateway
+	// Future improvement: add authentication middleware to this post request path, to prevent malicious attacks on the API Gateway
 	h.POST("/idlmanagement/update", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
 		serviceMap = make(map[string]map[string]string)         // reallocate serviceMap to clear all entries
 		err = jsoniter.Unmarshal(ctx.GetRawData(), &serviceMap) // receive the new serviceMap from IDL management service in JSON body
@@ -88,32 +109,31 @@ func main() {
 			panic(err)
 		}
 
-		// build a consul client
+		// Consul resolver for Hertz framework (IDL Management Server)
 		consulConfig := consulapi.DefaultConfig()
-		consulConfig.Address = os.Args[1]
+		consulConfig.Address = consul_address
 		consulClient, err := consulapi.NewClient(consulConfig)
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
-		// build a consul resolver with the consul client
 		hr := hconsul.NewConsulResolver(consulClient)
 
-		// // build a hertz client with the consul resolver
+		// Build a hertz client with the Consul resolver
 		cli, err := hclient.NewClient()
 		if err != nil {
 			panic(err)
 		}
 		cli.Use(sd.Discovery(hr))
 
-		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using RPC
+		for serviceName, innerMap := range serviceMap { // download the individual thrift files from the IDL management service using HTTP Get Requests
 			for serviceVersion, thriftFileName := range innerMap {
 				file, err := os.Create("./thrift_files/" + thriftFileName)
 				if err != nil {
 					hlog.Error("Problem creating new thrift file: " + thriftFileName)
 					panic(err)
 				}
-				address := "http://idlmanagement/getthriftfile/" + thriftFileName
+				address := "http://idlmanagement/getthriftfile/" + thriftFileName // address is resolved with Consul
 				var content []byte
 				status, urlbody, err := cli.Get(context.Background(), content, address, config.WithSD(true))
 				// log.Println(urlbody)
@@ -143,13 +163,11 @@ func main() {
 	h.POST("/:service/:version/:method", LoggerMiddleware(), func(c context.Context, ctx *app.RequestContext) {
 		serviceName := ctx.Param("service") // see https://www.cloudwego.io/docs/hertz/tutorials/basic-feature/route/
 		serviceVersion := ctx.Param("version")
-		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method"))
-		log.Println(serviceName, serviceVersion, methodName)
+		methodName := cases.Title(language.English, cases.NoLower).String(ctx.Param("method")) // Making methodName non-case sensitive
 
 		thriftFileDir := "./thrift_files/" + serviceMap[serviceName][serviceVersion]
 
-		// Process RPC Call
-
+		// Process RPC Call - https://www.cloudwego.io/docs/kitex/tutorials/advanced-feature/generic-call/#4-json-mapping-generic-call
 		p, err := generic.NewThriftFileProvider(thriftFileDir)
 		if err != nil {
 			hlog.Error(fmt.Errorf("missing thrift file for service %s, version %s", serviceName, serviceVersion))
@@ -170,7 +188,7 @@ func main() {
 			genErrResp(ctx, consts.StatusInternalServerError, err)
 			return
 		}
-		
+
 		res, err := rpcClient.GenericCall(context.Background(), methodName, string(ctx.GetRawData()))
 		if err != nil {
 			hlog.Error(err)
