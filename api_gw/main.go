@@ -192,7 +192,7 @@ func main() {
 		res, err := rpcClient.GenericCall(context.Background(), methodName, string(ctx.GetRawData()))
 		if err != nil {
 			hlog.Error(err)
-			genErrResp(ctx, consts.StatusNotFound, err)
+			genErrResp(ctx, consts.StatusBadRequest, err)
 			return
 		}
 
