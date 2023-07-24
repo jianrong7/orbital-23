@@ -35,7 +35,7 @@ const UrlInput = () => {
       />
       <button
         type="submit"
-        className="bg-blue-500 p-2 rounded"
+        className="bg-blue-500 p-2 rounded min-w-min"
         onClick={sendRequest}
       >
         {isSendingRequest ? "Loading..." : "Send POST Request"}

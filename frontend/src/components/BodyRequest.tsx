@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import useRequestStore from "@/stores/request.store";
 
 import "highlight.js/styles/github.css";
+import { getRandomInt } from "@/utils";
 
 lowlight.registerLanguage("json", json);
 
@@ -36,6 +37,18 @@ const BodyRequest = () => {
     ],
   });
 
+  const generateRandomJsonBody = () => {
+    const randomJsonBody = JSON.stringify(
+      {
+        first: getRandomInt(1, 1000),
+        second: getRandomInt(1, 1000),
+      },
+      null,
+      2
+    );
+    editor?.commands.setContent(randomJsonBody);
+  };
+
   useEffect(() => {
     setJsonBody(editor?.getText());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,15 +58,25 @@ const BodyRequest = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <h2>JSON Body</h2>
-      <EditorContent
-        editor={editor}
-        className={`bg-white text-black p-2 max-h-96 rounded border-black ${
-          sentRequest && !isValidJsonBody
-            ? "border-red-500 border-2"
-            : "border-black"
-        }`}
-      />
+      <div className="flex justify-between items-center">
+        <h2>JSON Body</h2>
+        <button
+          className="bg-blue-500 p-2 rounded"
+          onClick={generateRandomJsonBody}
+        >
+          Generate random valid JSON body
+        </button>
+      </div>
+      <div>
+        <EditorContent
+          editor={editor}
+          className={`bg-white text-black p-2 max-h-96 rounded border-black ${
+            sentRequest && !isValidJsonBody
+              ? "border-red-500 border-2"
+              : "border-black"
+          }`}
+        />
+      </div>
     </div>
   );
 };
