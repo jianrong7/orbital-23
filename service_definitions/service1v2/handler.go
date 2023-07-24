@@ -28,6 +28,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
+		// Generate response to valid request
 		respBuf := &s1v2.AddResponse{Sum: req.First + req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
@@ -41,6 +42,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
+		// Generate response to valid request
 		respBuf := &s1v2.SubResponse{Diff: req.First - req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
@@ -48,7 +50,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		}
 		return res, nil
 
-		default:
-			return nil, errors.New("Unknown method: " + method)
+	default:
+		return nil, errors.New("Unknown method: " + method)
 	}
 }

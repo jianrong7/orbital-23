@@ -29,7 +29,8 @@ func (g *Service2Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
-		respBuf := &s2v1.MulResponse{Sum: req.First * req.Second}
+		// Generate response to valid request
+		respBuf := &s2v1.MulResponse{Product: req.First * req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
 			panic(err)

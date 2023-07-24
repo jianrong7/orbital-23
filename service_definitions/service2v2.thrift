@@ -6,7 +6,7 @@ struct MulRequest {
 }
 
 struct MulResponse {
-    1: i64 sum
+    1: i64 product
 }
 
 struct DivRequest {
