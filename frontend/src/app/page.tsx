@@ -15,7 +15,6 @@ export default function Home() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    console.log(searchParams);
     setUrl(searchParams?.get("url") || "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
