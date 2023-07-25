@@ -27,7 +27,8 @@ resource "aws_subnet" "sg_a" {
   }
 }
 
-# can add more subnets to look cooler with the different network addresses
+# can add more subnets to look cooler with the different network addresses :)
+# or rather have the different servers (API Gateway, IDL Management, Services, Consul) reside in different subnets
 
 resource "aws_key_pair" "tfkey" {
   key_name   = "tfkey"
@@ -41,6 +42,7 @@ resource "aws_instance" "consul_server" {
   vpc_security_group_ids = [aws_security_group.vpc_sg.id, aws_security_group.consul_server_sg.id, aws_security_group.ssh_sg.id]
   subnet_id              = aws_subnet.sg_a.id
 
+  # install and run consul on the EC2 instance using the provisioners
   provisioner "file" {
     source      = "./scripts/consul_install.sh"
     destination = "/tmp/consul_install.sh"
@@ -162,7 +164,7 @@ resource "aws_route_table_association" "my_public_assoc" {
   route_table_id = aws_route_table.my_public_rt.id
 }
 
-resource "aws_security_group" "vpc_sg" {
+resource "aws_security_group" "vpc_sg" { # allow all tcp traffic within the VPC
   name        = "vpc_sg"
   description = "server tcp security group"
   vpc_id      = aws_vpc.orbital-23.id
@@ -181,7 +183,7 @@ resource "aws_security_group" "vpc_sg" {
   }
 }
 
-resource "aws_security_group" "ssh_sg" {
+resource "aws_security_group" "ssh_sg" { # expose ssh port to all addresses
   name        = "ssh_sg"
   description = "server ssh security group"
   vpc_id      = aws_vpc.orbital-23.id
@@ -200,7 +202,7 @@ resource "aws_security_group" "ssh_sg" {
   }
 }
 
-resource "aws_security_group" "consul_server_sg" {
+resource "aws_security_group" "consul_server_sg" { # expose 8500 port to all addresses
   name        = "consul_server_sg"
   description = "consul server exposed port 8500 security group"
   vpc_id      = aws_vpc.orbital-23.id
@@ -219,7 +221,7 @@ resource "aws_security_group" "consul_server_sg" {
   }
 }
 
-resource "aws_security_group" "api_gw_sg" {
+resource "aws_security_group" "api_gw_sg" { # expose 8888 port to all addresses
   name        = "api_gw_sg"
   description = "api gateway exposed port 8888 security group"
   vpc_id      = aws_vpc.orbital-23.id

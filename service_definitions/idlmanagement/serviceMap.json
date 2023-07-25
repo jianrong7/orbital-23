@@ -6,7 +6,6 @@
     },
     "service2" :
     {
-        "v1" : "service2v1.thrift",
-        "v2" : "service2v2.thrift"
+        "v1" : "service2v1.thrift"
     }
 }

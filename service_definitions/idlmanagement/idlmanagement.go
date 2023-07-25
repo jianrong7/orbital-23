@@ -1,3 +1,17 @@
+/*
+idlmanagement is the code for the IDL Management Service.
+
+It is built using the Hertz HTTP framework.
+https://github.com/cloudwego/hertz
+
+It also utilises the Hashicorp Consul registry
+https://www.hashicorp.com/products/consul
+
+Usage:
+
+	./idlmanagement [Consul Private Address] [Own Address] [API Gateway Public Address]
+*/
+
 package main
 
 import (
@@ -19,11 +33,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func delayReadFileUpdateAPIGateway() { // to allow the idlmanagement http server to start up properly before it sends the update request
-	time.Sleep(10 * time.Second) // hacky time delay
-	readFileUpdateAPIGateway()
-}
-
 func readFileUpdateAPIGateway() {
 	// read in the new service mapping from the serviceMap.json file, reallocating a new map
 	serviceMap := make(map[string]map[string]string)
@@ -37,8 +46,8 @@ func readFileUpdateAPIGateway() {
 		log.Println("Problem unmarshalling config")
 		panic(err)
 	}
-
-	address := "http://" + os.Args[3] + "/idlmanagement/update" // api gateway address as command-line argument 3
+	api_gw_addr := os.Args[3]
+	address := "http://" + api_gw_addr + "/idlmanagement/update" // api gateway address as command-line argument 3
 	_, err = http.Post(address, "application/json",
 		bytes.NewBuffer(content))
 	if err != nil {
@@ -90,7 +99,8 @@ func runFileWatcher() {
 func main() {
 	// build a consul client
 	config := consulapi.DefaultConfig()
-	config.Address = os.Args[1] // consul address as command-line argument 1
+	consul_address := os.Args[1] // taking the Consul server address as command-line argument 1 to make deployment easier
+	config.Address = consul_address
 	consulClient, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatal(err)
@@ -102,32 +112,34 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	own_address := os.Args[2] // own address as command-line argument 2
 	h := server.Default(
-		server.WithHostPorts("0.0.0.0:9999"),
+		server.WithHostPorts("0.0.0.0:9999"), // use "0.0.0.0:9999" to listen to all addresses on port 9999
 		server.WithRegistry(r, &registry.Info{
 			ServiceName: "idlmanagement",
-			Addr:        utils.NewNetAddr("tcp", os.Args[2]), // own address as command-line argument 2
+			Addr:        utils.NewNetAddr("tcp", own_address),
 			Weight:      10,
 			Tags:        nil,
 		}),
 	)
 
 	h.OnRun = append(h.OnRun, func(ctx context.Context) error {
-		log.Println("Running the first hook")
-		go delayReadFileUpdateAPIGateway()
+		go func() {
+			// to allow the idlmanagement http server to start up properly before it sends the update request
+			time.Sleep(10 * time.Second) // hacky time delay -- no idea how to implement asynchronous flag to trigger
+			readFileUpdateAPIGateway()
+		}()
 		return nil
 	})
 
 	h.OnRun = append(h.OnRun, func(ctx context.Context) error {
-		log.Println("Running the second hook")
 		go runFileWatcher()
 		return nil
 	})
 
-	// TODO: Protect with basicauth
+	// Future improvement: Protect with authentication middleware
 	h.GET("/getthriftfile/:name", func(c context.Context, ctx *app.RequestContext) {
 		thriftFileName := ctx.Param("name")
-		log.Println(thriftFileName)
 		content, err := os.ReadFile(thriftFileName)
 		if err != nil {
 			log.Println("Problem reading " + thriftFileName)

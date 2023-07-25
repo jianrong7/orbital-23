@@ -1,3 +1,17 @@
+/*
+service1v2 is the code for the RPC service service1v2.
+
+It is built using the Kitex RPC framework.
+https://github.com/cloudwego/kitex
+
+It also utilises the Hashicorp Consul registry
+https://www.hashicorp.com/products/consul
+
+Usage:
+
+	./service1v2 [Consul Private Address]
+*/
+
 package main
 
 import (
@@ -14,16 +28,16 @@ import (
 )
 
 func main() {
-	r, err := consul.NewConsulRegister(os.Args[1]) // consul address as command-line argument
+	consul_address := os.Args[1] // taking the Consul server address as a command-line argument to make deployment easier
+	r, err := consul.NewConsulRegister(consul_address)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// https://www.cloudwego.io/docs/kitex/tutorials/advanced-feature/generic-call/#4-json-mapping-generic-call
 	p, err := generic.NewThriftFileProvider("./service1v2.thrift")
 	if err != nil {
 		panic(err)
 	}
-
 	g, err := generic.JSONThriftGeneric(p)
 	if err != nil {
 		panic(err)
