@@ -20,7 +20,7 @@ describe("<Home />", () => {
       }),
       { parseSpecialCharSequences: false }
     );
-    cy.get(".bg-blue-500").click();
+    cy.get(".gap-4 > .bg-blue-500").click();
     cy.get(".flex-col.gap-4 > :nth-child(3)", { timeout: 1000 }).should(
       "not.exist"
     );
@@ -32,7 +32,7 @@ describe("<Home />", () => {
     cy.get("#url").type("https://reqres.in/api/users");
     cy.get("p").clear();
     cy.get("p").type("INVALID JSON");
-    cy.get(".bg-blue-500").click();
+    cy.get(".gap-4 > .bg-blue-500").click();
     cy.get(".flex-col.gap-4 > :nth-child(3)", { timeout: 1000 }).should(
       "not.exist"
     );
@@ -44,7 +44,7 @@ describe("<Home />", () => {
     cy.get("#url").type("https://reqres.in/api/users");
     cy.get("p").clear();
     cy.get("p").type("INVALID JSON");
-    cy.get(".bg-blue-500").click();
+    cy.get(".gap-4 > .bg-blue-500").click();
     cy.get(".flex-col.gap-4 > :nth-child(3)", { timeout: 1000 }).should(
       "not.exist"
     );
@@ -61,7 +61,7 @@ describe("<Home />", () => {
       }),
       { parseSpecialCharSequences: false }
     );
-    cy.get(".bg-blue-500").click();
+    cy.get(".gap-4 > .bg-blue-500").click();
     cy.get(".flex-col.gap-4 > :nth-child(3)", { timeout: 1500 })
       .should("be.visible")
       .and("contain", "Response");
