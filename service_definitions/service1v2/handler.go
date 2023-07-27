@@ -15,12 +15,7 @@ type Service1Impl struct{}
 // GenericCall implements generic.Service.
 func (g *Service1Impl) GenericCall(ctx context.Context, method string, request interface{}) (response interface{}, err error) {
 	log.Println("GenericCall from handler1:", request)
-	// JSON Validity Check
 	reqBuf := request.(string) // type assertion
-	isValid := jsoniter.Valid([]byte(reqBuf))
-	if !isValid {
-		return nil, errors.New("Invalid JSON request: " + reqBuf)
-	}
 	switch method {
 	case "Add":
 		var req s1v2.AddRequest
@@ -28,7 +23,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
-		// Generate response to valid request
+		// Generate response
 		respBuf := &s1v2.AddResponse{Sum: req.First + req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
@@ -42,7 +37,7 @@ func (g *Service1Impl) GenericCall(ctx context.Context, method string, request i
 		if err != nil {
 			panic(err)
 		}
-		// Generate response to valid request
+		// Generate response
 		respBuf := &s1v2.SubResponse{Diff: req.First - req.Second}
 		res, err := jsoniter.MarshalToString(respBuf)
 		if err != nil {
