@@ -73,9 +73,12 @@ func runFileWatcher() {
 				}
 				log.Println("event:", event)
 				// if the file serviceMap.json is modified, it will generate a Write operation, which will trigger the update
-				if event.Name == "serviceMap.json" && event.Has(fsnotify.Write) {
+				if (event.Name == "serviceMap.json" || event.Name == "./serviceMap.json") && (event.Has(fsnotify.Write) || event.Has(fsnotify.Create)) {
 					log.Println("serviceMap.json modified")
-					go readFileUpdateAPIGateway()
+					go func() {
+						time.Sleep(2 * time.Second) // small delay to let the file write properly before it can be unmarshalled
+						readFileUpdateAPIGateway()
+					}()
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {

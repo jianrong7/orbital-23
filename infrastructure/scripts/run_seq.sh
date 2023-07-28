@@ -4,7 +4,7 @@ cd ..
 terraform output -json > outputs.json
 cd ..
 
-# ./build.sh
+./build.sh
 
 cd infrastructure/scripts
 
